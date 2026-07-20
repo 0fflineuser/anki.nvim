@@ -272,4 +272,35 @@ describe("anki.ui.help", function()
 			end)
 		end)
 	end)
+
+	describe("decks hint/help wording", function()
+		it("uses 'add note' in the decks hint line", function()
+			config.setup({})
+			local line = help.render_hint_line("decks")
+			assert.is_truthy(line:find("add note"))
+		end)
+
+		it("uses 'create deck' in the decks hint line", function()
+			config.setup({})
+			local line = help.render_hint_line("decks")
+			assert.is_truthy(line:find("create deck"))
+		end)
+
+		it("documents cursor-on-deck behavior for add_note in the help window", function()
+			config.setup({})
+			cleanup_help_buffers()
+			local lines, err = get_help_lines("decks")
+			assert.is_nil(err)
+			assert.is_table(lines)
+
+			local found = false
+			for _, line in ipairs(lines) do
+				if line:find("creates on the deck under the cursor") then
+					found = true
+					break
+				end
+			end
+			assert.is_true(found)
+		end)
+	end)
 end)

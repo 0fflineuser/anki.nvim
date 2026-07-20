@@ -45,12 +45,19 @@ local function entries_in_range()
 end
 
 --- Adds a new note to the specified deck, prompting for model and opening in a new editor tab.
----@param deck_name string|nil The name of the deck to add the note to. If nil, uses the current line.
+---@param deck_name string|nil The name of the deck to add the note to. If nil, looks up the deck at the cursor (header-aware); warns and aborts if no deck is under the cursor.
 function M.add_note(deck_name)
 	if not deck_name then
-		deck_name = vim.api.nvim_get_current_line()
+		local line_num = vim.api.nvim_win_get_cursor(0)[1]
+		local idx = line_num - HEADER_LINES
+		if idx >= 1 then
+			deck_name = anki_state.ui.decks[idx]
+		end
 	end
 	if not deck_name then
+		notification.warn(
+			"[anki.nvim][note_ops] add_note: no deck under the cursor; place the cursor on a deck line first."
+		)
 		return
 	end
 
@@ -59,7 +66,8 @@ function M.add_note(deck_name)
 			return
 		end
 
-		vim.ui.select(model_names, { prompt = "Select a model" }, function(model_name)
+		local prompt = string.format("Add note to '%s' — select a model", deck_name)
+		vim.ui.select(model_names, { prompt = prompt }, function(model_name)
 			if not model_name then
 				return
 			end

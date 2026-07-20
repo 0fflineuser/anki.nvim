@@ -41,8 +41,27 @@ end
 
 --- Prompts the user to create a new deck and refreshes the UI.
 function M.create_deck()
-	vim.ui.input({ prompt = "Enter deck name:" }, function(deck_name)
-		if deck_name and deck_name ~= "" then
+	local current_deck = deck_at_cursor()
+	vim.ui.input({ prompt = "Enter deck name:", default = current_deck }, function(deck_name)
+		if not deck_name or deck_name == "" then
+			return
+		end
+
+		utils.async_safe_call(ankiconnect.deck_names, nil, function(decks, err)
+			if err or not decks then
+				notification.error(
+					"[anki.nvim][deck_ops] Failed to check existing decks before creating '" .. deck_name .. "'"
+				)
+				return
+			end
+
+			for _, existing in ipairs(decks) do
+				if existing == deck_name then
+					notification.info("[anki.nvim][deck_ops] Deck '" .. deck_name .. "' already exists")
+					return
+				end
+			end
+
 			utils.async_safe_call(ankiconnect.create_deck, { deck_name }, function(result, error)
 				if error or result == nil then
 					notification.error("[anki.nvim][deck_ops] Failed to create deck '" .. deck_name .. "'")
@@ -51,7 +70,7 @@ function M.create_deck()
 				operations.refresh_all()
 				notification.info("[anki.nvim][deck_ops] Deck '" .. deck_name .. "' created")
 			end)
-		end
+		end)
 	end)
 end
 
