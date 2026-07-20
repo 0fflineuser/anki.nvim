@@ -173,7 +173,7 @@ describe("anki.ui.help", function()
 			end
 			assert.is_true(found["g? - Show this help window"] ~= nil)
 			assert.is_true(found["<Enter> - Insert selected media reference"] ~= nil)
-			assert.is_true(found["q / <Esc> - Close the media browser"] ~= nil)
+			assert.is_true(found["<leader>k / <Esc> - Close the media browser"] ~= nil)
 		end)
 	end)
 
@@ -301,6 +301,28 @@ describe("anki.ui.help", function()
 				end
 			end
 			assert.is_true(found)
+		end)
+	end)
+
+	describe("close key defaults", function()
+		it("uses '<leader>k' as the deck close key", function()
+			config.setup({})
+			assert.are.equal("<leader>k", config.options.mappings.deck.close)
+		end)
+
+		it("uses '<leader>k' as the note close key", function()
+			config.setup({})
+			assert.are.equal("<leader>k", config.options.mappings.note.close)
+		end)
+
+		it("uses '<leader>k' as the editor close key", function()
+			config.setup({})
+			assert.are.equal("<leader>k", config.options.mappings.editor.close)
+		end)
+
+		it("uses '<leader>k' as the template close_template key", function()
+			config.setup({})
+			assert.are.equal("<leader>k", config.options.mappings.template.close_template)
 		end)
 	end)
 end)

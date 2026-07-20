@@ -357,7 +357,7 @@ local function setup_keymaps()
 	end
 
 	set_key(state.list_buf, "n", "<CR>", "<Cmd>lua require('anki.ui.media_browser').select_and_insert()<CR>")
-	set_key(state.list_buf, "n", "q", "<Cmd>lua require('anki.ui.media_browser').close()<CR>")
+	set_key(state.list_buf, "n", "<leader>k", "<Cmd>lua require('anki.ui.media_browser').close()<CR>")
 	set_key(state.list_buf, "n", "<Esc>", "<Cmd>lua require('anki.ui.media_browser').close()<CR>")
 	set_key(state.list_buf, "n", "g?", "<Cmd>lua require('anki.ui.help').show_help('media_browser')<CR>")
 end

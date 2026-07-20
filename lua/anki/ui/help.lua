@@ -132,7 +132,7 @@ function M.show_help(context)
 			"",
 			"g? - Show this help window",
 			"<Enter> - Insert selected media reference",
-			"q / <Esc> - Close the media browser",
+			"<leader>k / <Esc> - Close the media browser",
 			"j/k - Navigate the file list",
 		}
 	elseif context == "templates" then
@@ -164,7 +164,7 @@ function M.show_help(context)
 		border = "single",
 		title = "Anki Help",
 	})
-	vim.api.nvim_buf_set_keymap(help_bufnr, "n", "q", "<Cmd>bd!<CR>", { noremap = true, silent = true })
+	vim.api.nvim_buf_set_keymap(help_bufnr, "n", "<leader>k", "<Cmd>bd!<CR>", { noremap = true, silent = true })
 end
 
 return M

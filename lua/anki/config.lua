@@ -38,7 +38,7 @@
 
 ---@class AnkiDeckMappings
 ---@field show_help string Show Help (default: `"g?"`)
----@field close string Close (default: `"q"`)
+---@field close string Close (default: `"<leader>k"`)
 ---@field select_deck string Select deck (default: `"<CR>"`)
 ---@field delete_deck string Delete deck (default: `"d"`)
 ---@field create_deck string Create deck (default: `"c"`)
@@ -52,7 +52,7 @@
 
 ---@class AnkiNoteMappings
 ---@field show_help string Show Help (default: `"g?"`)
----@field close string Close (default: `"q"`)
+---@field close string Close (default: `"<leader>k"`)
 ---@field edit_note string Edit note (default: `"<CR>"`)
 ---@field delete_note string Delete note (default: `"d"`)
 ---@field gui_note string Open in Anki GUI (default: `"o"`)
@@ -63,7 +63,7 @@
 ---@field toggle_view_mode string Toggle between notes and cards view (default: `"<Tab>"`)
 
 ---@class AnkiEditorMappings
----@field close string Close note editor (default: `"q"`)
+---@field close string Close note editor (default: `"<leader>k"`)
 ---@field send_note string Send note to Anki (default: `"<leader>w"`)
 ---@field pull_note string Pull note from Anki (default: `"<leader>p"`)
 ---@field delete_note string Delete note (default: `"<leader>r"`)
@@ -74,7 +74,7 @@
 ---@field save_template string Save template to Anki (default: `"<leader>w"`)
 ---@field pull_template string Pull template from Anki (default: `"<leader>p"`)
 ---@field switch_card string Switch card in multi-card models (default: `"<leader>s"`)
----@field close_template string Close template editor (default: `"q"`)
+---@field close_template string Close template editor (default: `"<leader>k"`)
 ---@field show_help string Show help (default: `"g?"`)
 
 local M = {}
@@ -128,7 +128,7 @@ M.defaults = {
 	mappings = {
 		deck = {
 			show_help = "g?",
-			close = "q",
+			close = "<leader>k",
 			select_deck = "<CR>",
 			delete_deck = "d",
 			create_deck = "c",
@@ -142,7 +142,7 @@ M.defaults = {
 		},
 		note = {
 			show_help = "g?",
-			close = "q",
+			close = "<leader>k",
 			edit_note = "<CR>",
 			delete_note = "d",
 			gui_note = "o",
@@ -153,7 +153,7 @@ M.defaults = {
 			toggle_view_mode = "<Tab>",
 		},
 		editor = {
-			close = "q",
+			close = "<leader>k",
 			send_note = "<leader>w",
 			pull_note = "<leader>p",
 			delete_note = "<leader>r",
@@ -164,7 +164,7 @@ M.defaults = {
 			save_template = "<leader>w",
 			pull_template = "<leader>p",
 			switch_card = "<leader>s",
-			close_template = "q",
+			close_template = "<leader>k",
 			show_help = "g?",
 		},
 	},

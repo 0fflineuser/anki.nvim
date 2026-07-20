@@ -149,7 +149,7 @@ require("anki").setup({
   mappings = {
     deck = {
       show_help = "g?",
-      close = "q",
+      close = "<leader>k",
       select_deck = "<CR>",
       delete_deck = "d",
       create_deck = "c",
@@ -163,7 +163,7 @@ require("anki").setup({
     },
     note = {
       show_help = "g?",
-      close = "q",
+      close = "<leader>k",
       edit_note = "<CR>",
       delete_note = "d",
       gui_note = "o",
@@ -174,7 +174,7 @@ require("anki").setup({
       toggle_view_mode = "<Tab>",
     },
     editor = {
-      close = "q",
+      close = "<leader>k",
       show_help = "g?",
       send_note = "<leader>w",
       pull_note = "<leader>p",
@@ -185,7 +185,7 @@ require("anki").setup({
       save_template = "<leader>w",
       pull_template = "<leader>p",
       switch_card = "<leader>s",
-      close_template = "q",
+      close_template = "<leader>k",
       show_help = "g?",
     },
   },
@@ -216,7 +216,7 @@ These keymaps are configurable, see the `Configuration` section.
  | Keymap | Description                             |
  |--------|-----------------------------------------|
  | `g?`   | Show this help window                   |
- | `q`    | Close the Anki UI tab                   |
+ | `<leader>k` | Close the Anki UI tab                   |
  | `<CR>` | Select a deck and show its notes        |
  | `d`    | Delete deck under cursor                |
  | `c`    | Create a deck                           |
@@ -233,7 +233,7 @@ These keymaps are configurable, see the `Configuration` section.
   | Keymap   | Description                                    |
   |----------|------------------------------------------------|
   | `g?`     | Show this help window                          |
-  | `q`      | Close the Anki UI tab                          |
+  | `<leader>k` | Close the Anki UI tab                          |
   | `<CR>`   | Edit the selected note in a new tab            |
   | `d`      | Delete the selected note                       |
   | `o`      | Open the selected note in the Anki GUI         |
@@ -248,7 +248,7 @@ These keymaps are configurable, see the `Configuration` section.
   | Keymap       | Description                                       |
   |--------------|---------------------------------------------------|
   | `g?`         | Show this help window                             |
-  | `q`          | Close the note editor tab                        |
+  | `<leader>k`  | Close the note editor tab                        |
   | `<leader>w`  | \*W\*rite/Send the current note to Anki           |
   | `<leader>p`  | \*P\*ull the latest version of the note from Anki |
   | `<leader>r`  | \*R\*emove/Delete the note from Anki              |
@@ -259,7 +259,7 @@ These keymaps are configurable, see the `Configuration` section.
   | Keymap       | Description                                       |
   |--------------|---------------------------------------------------|
   | `g?`         | Show this help window                             |
-  | `q`          | Close the template editor tab                    |
+  | `<leader>k`  | Close the template editor tab                    |
   | `<leader>w`  | Save template changes to Anki                     |
   | `<leader>p`  | Pull the latest template from Anki                |
   | `<leader>s`  | Switch card (for multi-card models)                |
@@ -271,7 +271,7 @@ The media browser is a floating two-pane window (file list on the left, preview 
   | Keymap    | Description                              |
   |-----------|------------------------------------------|
   | `<CR>`    | Insert the selected media reference      |
-  | `q`       | Close the media browser                  |
+  | `<leader>k` | Close the media browser                  |
   | `<Esc>`   | Close the media browser                  |
   | `g?`      | Show help window                              |
   | `j`/`k`   | Navigate the file list (standard movement) |
