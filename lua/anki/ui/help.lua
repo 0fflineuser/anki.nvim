@@ -11,7 +11,7 @@ function M.render_hint_line(context)
 	if context == "decks" then
 		m = config.options.mappings.deck
 		return string.format(
-			"Decks: %s add note | %s close | %s create deck | %s delete | %s gui | %s help | %s model | %s profile | %s refresh | %s rename | %s select | %s templates",
+			"Hint: %s add note | %s close | %s create deck | %s delete | %s gui | %s help | %s model | %s profile | %s refresh | %s rename | %s select | %s templates",
 			m.add_note,
 			m.close,
 			m.create_deck,
@@ -28,7 +28,7 @@ function M.render_hint_line(context)
 	elseif context == "notes" then
 		m = config.options.mappings.note
 		return string.format(
-			"Notes: %s all | %s cards/notes | %s close | %s delete | %s edit | %s gui | %s help | %s move | %s refresh | %s search",
+			"Hint: %s all | %s cards/notes | %s close | %s delete | %s edit | %s gui | %s help | %s move | %s refresh | %s search",
 			m.show_all_notes,
 			m.toggle_view_mode,
 			m.close,

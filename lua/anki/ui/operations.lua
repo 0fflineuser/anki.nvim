@@ -12,6 +12,54 @@ local M = {}
 local HEADER_LINES = 3
 M.HEADER_LINES = HEADER_LINES
 
+-- Buffer-local namespace used to highlight the hint line (line 1) of the
+-- deck and notes buffers via extmarks: italic "Hint:" prefix + red keybinds.
+local hint_ns = vim.api.nvim_create_namespace("anki_hint")
+
+vim.api.nvim_set_hl(0, "AnkiHintLabel", { default = true, italic = true })
+vim.api.nvim_set_hl(0, "AnkiHintKey", { default = true, fg = "Red" })
+
+--- Parses a rendered hint line and returns byte-offset ranges for each
+--- keybind token. The format is: "Hint: KEY1 label1 | KEY2 label2 | ..."
+--- @param line string The rendered hint line.
+--- @return table list of { start_col, end_col } (0-indexed, end_col exclusive)
+local function find_key_ranges(line)
+	local prefix = "Hint: "
+	local prefix_len = #prefix
+	if line:sub(1, prefix_len) ~= prefix then
+		return {}
+	end
+
+	local ranges = {}
+	local col = prefix_len + 1 -- 1-indexed for Lua string ops
+
+	while col <= #line do
+		-- Find end of key (first space at or after col)
+		local space_pos = line:find(" ", col)
+		local key_end = space_pos or (#line + 1)
+
+		-- Convert to 0-indexed extmark columns (end_col is exclusive)
+		table.insert(ranges, {
+			start_col = col - 1,
+			end_col = key_end - 1,
+		})
+
+		-- Find next "|" separator
+		local pipe = line:find("|", key_end)
+		if not pipe then
+			break
+		end
+
+		-- Skip spaces after "|" to reach next key
+		col = pipe + 1
+		while col <= #line and line:sub(col, col) == " " do
+			col = col + 1
+		end
+	end
+
+	return ranges
+end
+
 --- Formats a note for display in the buffer.
 -- @param note table The note object.
 -- @return string The formatted note string.
@@ -65,6 +113,28 @@ local function render_with_header(bufnr, context, content_lines)
 		cursor = vim.api.nvim_win_get_cursor(winid)
 	end
 	vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, all)
+	-- Highlight the hint line (line 1): italic "Hint:" prefix + red keybinds.
+	-- Styling refreshes on each render; namespace is cleared to avoid stale marks.
+	vim.api.nvim_buf_clear_namespace(bufnr, hint_ns, 0, -1)
+	local hint_line = all[1]
+	if hint_line and #hint_line > 0 then
+		local prefix_len = #"Hint:"
+		if hint_line:sub(1, prefix_len) == "Hint:" then
+			vim.api.nvim_buf_set_extmark(bufnr, hint_ns, 0, 0, {
+				end_col = prefix_len,
+				hl_group = "AnkiHintLabel",
+				priority = 100,
+			})
+		end
+
+		for _, range in ipairs(find_key_ranges(hint_line)) do
+			vim.api.nvim_buf_set_extmark(bufnr, hint_ns, 0, range.start_col, {
+				end_col = range.end_col,
+				hl_group = "AnkiHintKey",
+				priority = 100,
+			})
+		end
+	end
 	if winid ~= -1 and vim.api.nvim_win_is_valid(winid) and cursor then
 		-- Keep cursor at least on the first content line.
 		local row = math.max(cursor[1], HEADER_LINES + 1)

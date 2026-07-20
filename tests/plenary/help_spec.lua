@@ -204,14 +204,14 @@ describe("anki.ui.help", function()
 			local line = help.render_hint_line("decks")
 			assert.is_string(line)
 			assert.is_true(#line > 0)
-			assert.is_true(line:find("Decks:") ~= nil)
+			assert.is_true(line:find("Hint:") ~= nil)
 		end)
 
 		it("returns a non-empty string for notes", function()
 			local line = help.render_hint_line("notes")
 			assert.is_string(line)
 			assert.is_true(#line > 0)
-			assert.is_true(line:find("Notes:") ~= nil)
+			assert.is_true(line:find("Hint:") ~= nil)
 		end)
 
 		it("reflects custom mappings in the hint line", function()
@@ -223,7 +223,7 @@ describe("anki.ui.help", function()
 
 	describe("render_hint_line alphabetical order", function()
 		-- Extracts the label words from a hint line, in order.
-		-- e.g. "Decks: a add | b close" -> { "add", "close" }
+		-- e.g. "Hint: a add | b close" -> { "add", "close" }
 		local function extract_labels(line)
 			local rest = line:gsub("^%w+: ", "")
 			local labels = {}
