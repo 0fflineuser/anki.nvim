@@ -10,6 +10,7 @@ local EditorContext = require("anki.classes.editor_context")
 local Field = require("anki.classes.field")
 local Note = require("anki.classes.note")
 local notification = require("anki.notification")
+local sticky = require("anki.sticky")
 local config = require("anki.config")
 
 local M = {}
@@ -144,6 +145,7 @@ function M.display_note(note)
 	local tags_mappings = {
 		close = string.format("<Cmd>lua require('anki.editor').kill_note(%d)<CR>", tags_bufnr),
 		send_note = string.format("<Cmd>lua require('anki.api').send_note(%d)<CR>", tags_bufnr),
+		new_note = string.format("<Cmd>lua require('anki.api').send_note(%d, false, true)<CR>", tags_bufnr),
 		pull_note = string.format("<Cmd>lua require('anki.api').pull_note(%d)<CR>", tags_bufnr),
 		delete_note = string.format("<Cmd>lua require('anki.api').delete_note(%d)<CR>", tags_bufnr),
 		show_help = string.format("<Cmd>lua require('anki.ui.help').show_help('editor')<CR>"),
@@ -154,7 +156,6 @@ function M.display_note(note)
 			vim.api.nvim_buf_set_keymap(tags_bufnr, "n", key, tags_mappings[action], { noremap = true, silent = true })
 		end
 	end
-
 	local tags_win = vim.api.nvim_get_current_win()
 	vim.api.nvim_win_set_buf(tags_win, tags_bufnr)
 	note.tags.winid = tags_win
@@ -174,10 +175,12 @@ function M.display_note(note)
 		local field_mappings = {
 			close = string.format("<Cmd>lua require('anki.editor').kill_note(%d)<CR>", field_bufnr),
 			send_note = string.format("<Cmd>lua require('anki.api').send_note(%d)<CR>", field_bufnr),
+			new_note = string.format("<Cmd>lua require('anki.api').send_note(%d, false, true)<CR>", field_bufnr),
 			pull_note = string.format("<Cmd>lua require('anki.api').pull_note(%d)<CR>", field_bufnr),
 			delete_note = string.format("<Cmd>lua require('anki.api').delete_note(%d)<CR>", field_bufnr),
 			show_help = string.format("<Cmd>lua require('anki.ui.help').show_help('editor')<CR>"),
 			attach_media = string.format("<Cmd>lua require('anki.media').attach_media(%d)<CR>", field_bufnr),
+			toggle_sticky = string.format("<Cmd>lua require('anki.editor').toggle_sticky(%d)<CR>", field_bufnr),
 		}
 
 		for action, key in pairs(config.options.mappings.editor) do
@@ -190,6 +193,30 @@ function M.display_note(note)
 					{ noremap = true, silent = true }
 				)
 			end
+		end
+	end
+end
+
+--- Toggles the sticky flag for the field rendered in the given buffer.
+--- Sticky fields keep their content when the editor is reset for the next note
+--- (see anki.api send_note with new_note_after_send).
+---@param bufnr number The buffer number of a field buffer.
+function M.toggle_sticky(bufnr)
+	if type(bufnr) ~= "number" then
+		error("[anki.nvim][editor] toggle_sticky: bufnr must be a number")
+	end
+	local note = M.find_note_by_bufnr(bufnr)
+	if not note then
+		notification.warn("[anki.nvim][editor] No Anki note buffer found")
+		return
+	end
+	for _, field in ipairs(note.fields) do
+		if field.editor_context.bufnr == bufnr then
+			local new_state = sticky.toggle(note.model_name, field.name)
+			notification.info(
+				string.format("[anki.nvim][editor] Field '%s' sticky: %s", field.name, new_state and "on" or "off")
+			)
+			return
 		end
 	end
 end

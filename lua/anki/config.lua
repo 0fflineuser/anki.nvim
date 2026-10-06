@@ -69,6 +69,8 @@
 ---@field delete_note string Delete note (default: `"<leader>r"`)
 ---@field show_help string Show help (default: `"g?"`)
 ---@field attach_media string Attach media to note (default: `"<leader>m"`)
+---@field new_note string Send note, then reset editor for a new note (default: `"<leader>n"`)
+---@field toggle_sticky string Toggle sticky field (default: `"<leader>s"`, field buffers only)
 
 ---@class AnkiTemplateMappings
 ---@field save_template string Save template to Anki (default: `"<leader>w"`)
@@ -159,6 +161,8 @@ M.defaults = {
 			delete_note = "<leader>r",
 			show_help = "g?",
 			attach_media = "<leader>m",
+			new_note = "<leader>n",
+			toggle_sticky = "<leader>s",
 		},
 		template = {
 			save_template = "<leader>w",

@@ -30,6 +30,7 @@ It allows you to create, edit, and manage your Anki notes and decks directly fro
 -   Profile Switching: Switch between different Anki profiles without leaving Neovim.
 -   Open in Anki GUI: Jump directly to the selected deck or note in the Anki desktop application.
 -   Media Attachments: Attach images, audio, and video to notes from local files, URLs, clipboard, or Anki's media collection.
+-   Sticky Fields: Keep chosen field contents between consecutive notes, mirroring Anki's add-note dialog. Toggle with `<leader>s` in the editor, then use `<leader>n` to send the current note and reset the editor for the next one. The current per-field sticky state is also shown as `[x]`/`[ ]` toggle boxes in the editor help window (`g?`), where `<C-Space>` on a field toggles it.
 -   Media Browser: Browse Anki's media collection in a floating two-pane window with image preview support via [snacks.nvim](https://github.com/folke/snacks.nvim).
 
 ## Quick Start (Nix)
@@ -180,6 +181,8 @@ require("anki").setup({
       pull_note = "<leader>p",
       delete_note = "<leader>r",
       attach_media = "<leader>m",
+      new_note = "<leader>n",
+      toggle_sticky = "<leader>s",
     },
     template = {
       save_template = "<leader>w",
@@ -253,6 +256,8 @@ These keymaps are configurable, see the `Configuration` section.
   | `<leader>p`  | \*P\*ull the latest version of the note from Anki |
   | `<leader>r`  | \*R\*emove/Delete the note from Anki              |
   | `<leader>m`  | \*M\*edia/Attach media to the current field        |
+  | `<leader>n`  | \*N\*ew note: send the current note, then reset the editor for a new note (sticky fields kept) |
+  | `<leader>s`  | \*S\*ticky/Toggle sticky field (field buffers only; kept when adding the next note). Also shown as a `<C-Space>` toggle box in the editor help window |
 
 ### Template Editor Keymaps
 

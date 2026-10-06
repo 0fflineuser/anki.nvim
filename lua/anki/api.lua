@@ -11,6 +11,7 @@ local notification = require("anki.notification")
 local utils = require("anki.utils")
 local editor = require("anki.editor")
 local operations = require("anki.ui.operations")
+local sticky = require("anki.sticky")
 
 local M = {}
 
@@ -159,12 +160,19 @@ end
 --- Sends the current note to Anki, adding or updating as needed.
 -- @param bufnr number The buffer number of the note.
 -- @param kill boolean|nil Whether to kill the note buffer after sending.
-M.send_note = function(bufnr, kill)
+-- @param new_note_after_send boolean|nil When true, resets the editor into a fresh
+--   note after a successful send instead of closing it: note.id is nil-ed, non-sticky
+--   field buffers are cleared (sticky fields kept, tags kept) and media attachments
+--   are reset. Mutually exclusive with `kill` (kill wins if both set).
+M.send_note = function(bufnr, kill, new_note_after_send)
 	if type(bufnr) ~= "number" then
 		error("[anki.nvim][api] send_note: bufnr must be a number")
 	end
 	if kill ~= nil and type(kill) ~= "boolean" then
 		error("[anki.nvim][api] send_note: kill must be a boolean or nil")
+	end
+	if new_note_after_send ~= nil and type(new_note_after_send) ~= "boolean" then
+		error("[anki.nvim][api] send_note: new_note_after_send must be a boolean or nil")
 	end
 	local note_to_send = editor.find_note_by_bufnr(bufnr)
 	if not note_to_send then
@@ -180,6 +188,8 @@ M.send_note = function(bufnr, kill)
 	local function cleanup_and_notify()
 		if kill then
 			editor.delete_note_buffers(note_to_send)
+		elseif new_note_after_send then
+			M._reset_for_new_note(note_to_send)
 		end
 		notify_user(is_new_note)
 		operations.refresh_all()
@@ -253,6 +263,34 @@ M.send_note = function(bufnr, kill)
 	end
 
 	do_send()
+end
+
+--- Resets a just-sent note's editor state so the next send creates a new note,
+--- mirroring Anki's add-note dialog reset: note.id is nil-ed, media attachments
+--- are cleared, tags are kept, and non-sticky field buffers are emptied while
+--- sticky fields keep their content (see anki.sticky). Safe to call outside a
+--- scheduled context: buffer writes are wrapped in vim.schedule.
+-- @param note Note The note object to reset.
+M._reset_for_new_note = function(note)
+	if type(note) ~= "table" then
+		error("[anki.nvim][api] _reset_for_new_note: note must be a table")
+	end
+
+	vim.schedule(function()
+		for _, field in ipairs(note.fields) do
+			local bufnr = field.editor_context.bufnr
+			if sticky.is_sticky(note.model_name, field.name) then
+				-- Sticky: keep the field's content.
+			else
+				vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { "" })
+			end
+		end
+		notification.info("[anki.nvim][api] Ready for next note (sticky fields kept)")
+	end)
+
+	-- Media already uploaded during the send must not re-attach to the next note.
+	note.media = { picture = {}, audio = {}, video = {} }
+	note.id = nil
 end
 
 --- Pulls the latest content for the current note from Anki into the buffers.

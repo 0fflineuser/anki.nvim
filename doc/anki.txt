@@ -86,7 +86,7 @@ AnkiDeckMappings                                  *anki.config.AnkiDeckMappings*
 
     Fields: ~
         {show_help}       (string)  Show Help (default: `"g?"`)
-        {close}           (string)  Close (default: `"q"`)
+        {close}           (string)  Close (default: `"<leader>k"`)
         {select_deck}     (string)  Select deck (default: `"<CR>"`)
         {delete_deck}     (string)  Delete deck (default: `"d"`)
         {create_deck}     (string)  Create deck (default: `"c"`)
@@ -103,7 +103,7 @@ AnkiNoteMappings                                  *anki.config.AnkiNoteMappings*
 
     Fields: ~
         {show_help}          (string)  Show Help (default: `"g?"`)
-        {close}              (string)  Close (default: `"q"`)
+        {close}              (string)  Close (default: `"<leader>k"`)
         {edit_note}          (string)  Edit note (default: `"<CR>"`)
         {delete_note}        (string)  Delete note (default: `"d"`)
         {gui_note}           (string)  Open in Anki GUI (default: `"o"`)
@@ -117,12 +117,14 @@ AnkiNoteMappings                                  *anki.config.AnkiNoteMappings*
 AnkiEditorMappings                              *anki.config.AnkiEditorMappings*
 
     Fields: ~
-        {close}         (string)  Close note editor (default: `"q"`)
-        {send_note}     (string)  Send note to Anki (default: `"<leader>w"`)
-        {pull_note}     (string)  Pull note from Anki (default: `"<leader>p"`)
-        {delete_note}   (string)  Delete note (default: `"<leader>r"`)
-        {show_help}     (string)  Show help (default: `"g?"`)
-        {attach_media}  (string)  Attach media to note (default: `"<leader>m"`)
+        {close}          (string)  Close note editor (default: `"<leader>k"`)
+        {send_note}      (string)  Send note to Anki (default: `"<leader>w"`)
+        {pull_note}      (string)  Pull note from Anki (default: `"<leader>p"`)
+        {delete_note}    (string)  Delete note (default: `"<leader>r"`)
+        {show_help}      (string)  Show help (default: `"g?"`)
+        {attach_media}   (string)  Attach media to note (default: `"<leader>m"`)
+        {new_note}       (string)  Send note, then reset editor for a new note (default: `"<leader>n"`)
+        {toggle_sticky}  (string)  Toggle sticky field (default: `"<leader>s"`, field buffers only)
 
 
 AnkiTemplateMappings                          *anki.config.AnkiTemplateMappings*
@@ -131,7 +133,7 @@ AnkiTemplateMappings                          *anki.config.AnkiTemplateMappings*
         {save_template}   (string)  Save template to Anki (default: `"<leader>w"`)
         {pull_template}   (string)  Pull template from Anki (default: `"<leader>p"`)
         {switch_card}     (string)  Switch card in multi-card models (default: `"<leader>s"`)
-        {close_template}  (string)  Close template editor (default: `"q"`)
+        {close_template}  (string)  Close template editor (default: `"<leader>k"`)
         {show_help}       (string)  Show help (default: `"g?"`)
 
 

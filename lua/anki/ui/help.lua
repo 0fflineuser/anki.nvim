@@ -1,4 +1,6 @@
 local config = require("anki.config")
+local anki_state = require("anki.state")
+local sticky = require("anki.sticky")
 
 local M = {}
 
@@ -44,6 +46,29 @@ function M.render_hint_line(context)
 	return ""
 end
 
+--- Builds one sticky checkbox line for the help buffer.
+---@param field_name string The field name.
+---@param is_sticky boolean The sticky state of the field.
+---@return string The rendered checkbox line, e.g. "  [x] Front".
+local function sticky_checkbox_line(field_name, is_sticky)
+	return "  [" .. (is_sticky and "x" or " ") .. "] " .. field_name
+end
+
+--- Builds the sticky-fields section lines for the editor help context.
+---@param note Note The note open in the current editor tab.
+---@return string[] lines The checkbox section lines (blank line, header, one per field).
+local function build_sticky_section(note)
+	local lines = { "" }
+	table.insert(
+		lines,
+		"Sticky fields (press <C-Space> on a field to toggle; sticky fields keep their content for the next note)"
+	)
+	for _, field in ipairs(note.fields) do
+		table.insert(lines, sticky_checkbox_line(field.name, sticky.is_sticky(note.model_name, field.name)))
+	end
+	return lines
+end
+
 --- Closes the help window if it is open.
 function M.close_help()
 	-- Iterate through all buffers to find the help buffer
@@ -60,9 +85,14 @@ function M.close_help()
 end
 
 --- Shows the help window for the given context (decks, notes, or editor).
--- @param context string|nil The context to show help for. Defaults to 'decks'.
+--- For the "editor" context, when a note is open in the current tab, a sticky-fields
+--- section is appended: one `[x]`/`[ ]` checkbox line per field, read live from
+--- anki.sticky. Pressing <C-Space> with the cursor on a checkbox line toggles that
+--- field's sticky flag and flips the box in place.
+---@param context string|nil "decks", "notes", "editor", "templates", or "media_browser"; defaults to "decks".
 function M.show_help(context)
 	context = context or "decks"
+	local note_anchored = nil
 
 	-- Check if cursor is already on the help window
 	local current_bufnr = vim.api.nvim_win_get_buf(0)
@@ -125,7 +155,15 @@ function M.show_help(context)
 			m.pull_note .. " - Pull note from Anki",
 			m.delete_note .. " - Remove/Delete note from Anki",
 			m.attach_media .. " - Attach media (image/audio/video) [field buffers only]",
+			m.new_note .. " - Send note, then reset editor for a new note (sticky fields kept)",
+			m.toggle_sticky .. " - Toggle sticky field (kept when adding next note) [field buffers only]",
 		}
+		-- Append the per-field sticky checkbox section when a note is open in this tab.
+		local note = anki_state.current_notes[vim.api.nvim_get_current_tabpage()]
+		if note then
+			help_lines = vim.list_extend(help_lines, build_sticky_section(note))
+			note_anchored = note
+		end
 	elseif context == "media_browser" then
 		help_lines = {
 			"Anki.nvim Help - Media Browser",
@@ -165,6 +203,56 @@ function M.show_help(context)
 		title = "Anki Help",
 	})
 	vim.api.nvim_buf_set_keymap(help_bufnr, "n", "<leader>k", "<Cmd>bd!<CR>", { noremap = true, silent = true })
+
+	if note_anchored then
+		local fields = {}
+		for _, field in ipairs(note_anchored.fields) do
+			table.insert(fields, field.name)
+		end
+		vim.api.nvim_buf_set_var(help_bufnr, "anki_sticky_model", note_anchored.model_name)
+		vim.api.nvim_buf_set_var(help_bufnr, "anki_sticky_fields", fields)
+		vim.api.nvim_buf_set_var(help_bufnr, "anki_sticky_first_line", #help_lines - #fields + 1)
+		vim.api.nvim_buf_set_keymap(
+			help_bufnr,
+			"n",
+			"<C-Space>",
+			string.format("<Cmd>lua require('anki.ui.help')._toggle_sticky_field(%d)<CR>", help_bufnr),
+			{ noremap = true, silent = true }
+		)
+	end
+end
+
+--- Toggles the sticky flag of the field whose checkbox line is under the cursor
+--- in the editor help window, rewriting the box in place. Silently does nothing
+--- when the buffer vars are missing or the cursor is not on a checkbox line.
+---@param help_bufnr number The help buffer number.
+function M._toggle_sticky_field(help_bufnr)
+	if type(help_bufnr) ~= "number" then
+		error("[anki.nvim][help] _toggle_sticky_field: bufnr must be a number")
+	end
+	if not vim.api.nvim_buf_is_valid(help_bufnr) then
+		return
+	end
+	local ok, model = pcall(vim.api.nvim_buf_get_var, help_bufnr, "anki_sticky_model")
+	if not ok or type(model) ~= "string" then
+		return
+	end
+	local ok_fields, fields = pcall(vim.api.nvim_buf_get_var, help_bufnr, "anki_sticky_fields")
+	if not ok_fields or type(fields) ~= "table" or #fields == 0 then
+		return
+	end
+	local ok_first, first_line = pcall(vim.api.nvim_buf_get_var, help_bufnr, "anki_sticky_first_line")
+	if not ok_first or type(first_line) ~= "number" then
+		return
+	end
+
+	local line = vim.api.nvim_win_get_cursor(0)[1]
+	if line < first_line or line > first_line + #fields - 1 then
+		return
+	end
+	local field = fields[line - first_line + 1]
+	local new_state = sticky.toggle(model, field)
+	vim.api.nvim_buf_set_lines(help_bufnr, line - 1, line, false, { sticky_checkbox_line(field, new_state) })
 end
 
 return M
