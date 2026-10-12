@@ -321,4 +321,111 @@ function M.gui_note()
 	utils.async_safe_call(ankiconnect.gui_browse, { query }, function(_, _) end)
 end
 
+--- Undoes the last Anki action via the Anki GUI. Refreshes the note pane
+--- only when Anki reports that something was actually undone.
+function M.undo_anki_action()
+	utils.async_safe_call(ankiconnect.gui_undo, nil, function(result, error)
+		if error then
+			notification.error("[anki.nvim][note_ops] Failed to undo last Anki action")
+			return
+		end
+		if result == true then
+			notification.info("[anki.nvim][note_ops] Undo accepted by Anki")
+			vim.schedule(function()
+				operations.refresh_all()
+			end)
+		end
+	end)
+end
+
+--- Selects the entry under the cursor in the open Anki GUI browser.
+--- In cards mode selects the card directly; in notes mode selects the first
+--- card of the note under the cursor.
+function M.select_note_in_anki_browser()
+	local entry = entry_at_cursor()
+	if not entry then
+		return
+	end
+
+	if anki_state.ui.view_mode == "cards" then
+		utils.async_safe_call(ankiconnect.gui_select_card, { entry.cardId }, function(_, error)
+			if error then
+				notification.error(
+					"[anki.nvim][note_ops] Failed to select the note's card in the Anki browser (is the Anki browser open?)"
+				)
+				return
+			end
+		end)
+		return
+	end
+
+	utils.async_safe_call(ankiconnect.notes_info, { entry.noteId }, function(notes_info, error)
+		if error or not notes_info or not notes_info[1] then
+			notification.error("[anki.nvim][note_ops] Could not fetch note info.")
+			return
+		end
+		local info = notes_info[1]
+		if not info.cards or #info.cards == 0 then
+			notification.warn("[anki.nvim][note_ops] Note under cursor has no cards")
+			return
+		end
+		utils.async_safe_call(ankiconnect.gui_select_card, { info.cards[1] }, function(_, select_error)
+			if select_error then
+				notification.error(
+					"[anki.nvim][note_ops] Failed to select the note's card in the Anki browser (is the Anki browser open?)"
+				)
+				return
+			end
+		end)
+	end)
+end
+
+--- Opens the note of the current editor tab in the Anki GUI edit dialog.
+--- Warns when the note has not been sent to Anki yet (no note id).
+function M.edit_in_anki()
+	local tabid = vim.api.nvim_get_current_tabpage()
+	local note = anki_state.current_notes[tabid]
+	if not note then
+		return
+	end
+
+	if not note.id then
+		notification.warn("[anki.nvim][note_ops] Note is not saved to Anki yet — send it first (<leader>w)")
+		return
+	end
+
+	utils.async_safe_call(ankiconnect.gui_edit_note, { note.id }, function(_, error)
+		if error then
+			notification.error("[anki.nvim][note_ops] Failed to open the note in the Anki editor")
+			return
+		end
+	end)
+end
+
+--- Pulls the note IDs currently selected in the open Anki GUI browser and
+--- shows them in the notes pane as an `nid:<id> or nid:<id>` filter.
+function M.sync_selection_from_anki_browser()
+	utils.async_safe_call(ankiconnect.gui_selected_notes, nil, function(note_ids, error)
+		if error then
+			notification.error("[anki.nvim][note_ops] Failed to get the selection from the Anki browser")
+			return
+		end
+		if not note_ids or #note_ids == 0 then
+			notification.info("[anki.nvim][note_ops] Nothing selected in the Anki browser")
+			return
+		end
+
+		local query_parts = {}
+		for _, note_id in ipairs(note_ids) do
+			table.insert(query_parts, "nid:" .. tostring(note_id))
+		end
+
+		anki_state.ui.current_filter = table.concat(query_parts, " or ")
+		anki_state.ui.view_mode = "notes"
+		vim.schedule(function()
+			operations.refresh_notes()
+		end)
+	end)
+end
+
 return M

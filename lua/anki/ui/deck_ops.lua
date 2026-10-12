@@ -111,6 +111,23 @@ function M.gui_deck()
 	utils.async_safe_call(ankiconnect.gui_browse, { query }, function(_, _) end)
 end
 
+--- Starts a review session for the selected deck in the Anki GUI.
+function M.review_deck()
+	local deck_name = deck_at_cursor()
+	if not deck_name then
+		notification.warn("[anki.nvim][deck_ops] No deck selected")
+		return
+	end
+
+	utils.async_safe_call(ankiconnect.gui_deck_review, { deck_name }, function(result, error)
+		if error or result == nil then
+			notification.error("[anki.nvim][deck_ops] Failed to start review for deck '" .. deck_name .. "'")
+			return
+		end
+		notification.info("[anki.nvim][deck_ops] Review started for deck '" .. deck_name .. "'")
+	end)
+end
+
 --- Renames the currently selected deck, moving all cards to the new deck name.
 function M.rename_deck()
 	local current_deck_name = deck_at_cursor()

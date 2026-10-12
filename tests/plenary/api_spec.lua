@@ -237,4 +237,75 @@ describe("anki.api", function()
 			pcall(vim.api.nvim_buf_delete, tags_bufnr, { force = true })
 		end)
 	end)
+
+	describe("push_note_to_add_dialog", function()
+		it("forwards the editor content as a guiAddCards payload without an id", function()
+			local note, field_bufnr, tags_bufnr = make_note_with_real_bufs()
+			note.id = 42
+
+			local original_find = editor.find_note_by_bufnr
+			editor.find_note_by_bufnr = function()
+				return note
+			end
+
+			local received_payload = nil
+			local original_gui_add_cards = mock_ankiconnect_fn("gui_add_cards", function(note_payload, on_result)
+				received_payload = note_payload
+				on_result(0, nil)
+			end)
+
+			local original_refresh = operations.refresh_all
+			operations.refresh_all = function() end
+
+			api.push_note_to_add_dialog(field_bufnr)
+
+			vim.wait(200, function()
+				return false
+			end)
+
+			assert.is_table(received_payload)
+			assert.are.equal("TestDeck", received_payload.deckName)
+			assert.are.equal("Basic", received_payload.modelName)
+			assert.are.same({ Front = "hello" }, received_payload.fields)
+			assert.are.same({ "tag1" }, received_payload.tags)
+			assert.is_nil(received_payload.id)
+
+			editor.find_note_by_bufnr = original_find
+			restore_ankiconnect_fn("gui_add_cards", original_gui_add_cards)
+			operations.refresh_all = original_refresh
+
+			pcall(vim.api.nvim_buf_delete, field_bufnr, { force = true })
+			pcall(vim.api.nvim_buf_delete, tags_bufnr, { force = true })
+		end)
+
+		it("notifies error when gui_add_cards fails", function()
+			local note, field_bufnr, tags_bufnr = make_note_with_real_bufs()
+
+			local original_find = editor.find_note_by_bufnr
+			editor.find_note_by_bufnr = function()
+				return note
+			end
+
+			mock_ankiconnect_fn("gui_add_cards", function(note_payload, on_result)
+				on_result(nil, "add dialog unavailable")
+			end)
+
+			local error_spy = spy.on(notification, "error")
+
+			api.push_note_to_add_dialog(field_bufnr)
+
+			vim.wait(200, function()
+				return false
+			end)
+
+			assert.spy(error_spy).was_called_with("[anki.nvim][api] Failed to open the Anki Add dialog")
+
+			error_spy:revert()
+			editor.find_note_by_bufnr = original_find
+			restore_ankiconnect_fn("gui_add_cards", nil)
+
+			pcall(vim.api.nvim_buf_delete, field_bufnr, { force = true })
+			pcall(vim.api.nvim_buf_delete, tags_bufnr, { force = true })
+		end)
+	end)
 end)

@@ -298,3 +298,217 @@ describe("anki.ui.note_ops.add_note", function()
 		end)
 	end)
 end)
+
+describe("anki.ui.note_ops undo/select/sync", function()
+	local stubs
+	local info_spy
+	local error_spy
+	local warn_spy
+	local undo_calls
+	local select_calls
+	local selected_notes_result
+
+	before_each(function()
+		config.setup({})
+		anki_state.ui.decks = { "FooDeck" }
+		anki_state.ui.notes = {}
+		anki_state.ui.cards = {}
+		anki_state.ui.view_mode = "notes"
+		anki_state.ui.current_filter = nil
+		undo_calls = {}
+		select_calls = {}
+		selected_notes_result = {}
+
+		stubs = make_stubs({})
+		apply_stubs(stubs)
+
+		stubs._saved.gui_undo = ankiconnect.gui_undo
+		stubs._saved.gui_select_card = ankiconnect.gui_select_card
+		stubs._saved.gui_selected_notes = ankiconnect.gui_selected_notes
+		stubs._saved.notes_info = ankiconnect.notes_info
+		stubs._saved.refresh_notes = operations.refresh_notes
+
+		ankiconnect.gui_undo = function(on_result)
+			table.insert(undo_calls, true)
+			on_result(true, nil)
+		end
+		ankiconnect.gui_select_card = function(card, on_result)
+			table.insert(select_calls, card)
+			on_result(true, nil)
+		end
+		ankiconnect.gui_selected_notes = function(on_result)
+			on_result(selected_notes_result, nil)
+		end
+		operations.refresh_notes = function() end
+
+		info_spy = spy.on(notification, "info")
+		error_spy = spy.on(notification, "error")
+		warn_spy = spy.on(notification, "warn")
+	end)
+
+	after_each(function()
+		restore_stubs(stubs)
+		ankiconnect.gui_undo = stubs._saved.gui_undo
+		ankiconnect.gui_select_card = stubs._saved.gui_select_card
+		ankiconnect.gui_selected_notes = stubs._saved.gui_selected_notes
+		ankiconnect.notes_info = stubs._saved.notes_info
+		operations.refresh_notes = stubs._saved.refresh_notes
+		info_spy:revert()
+		error_spy:revert()
+		warn_spy:revert()
+	end)
+
+	describe("undo_anki_action", function()
+		it("notifies info and refreshes when Anki reports something undone", function()
+			local refresh_calls = {}
+			operations.refresh_all = function()
+				table.insert(refresh_calls, true)
+			end
+
+			note_ops.undo_anki_action()
+			drain_async()
+
+			assert.are.equal(1, #undo_calls)
+			assert.spy(info_spy).was_called_with("[anki.nvim][note_ops] Undo accepted by Anki")
+			assert.are.equal(1, #refresh_calls)
+		end)
+
+		it("does not notify or refresh when Anki reports nothing to undo", function()
+			local refresh_calls = {}
+			operations.refresh_all = function()
+				table.insert(refresh_calls, true)
+			end
+			ankiconnect.gui_undo = function(on_result)
+				on_result(false, nil)
+			end
+
+			note_ops.undo_anki_action()
+			drain_async()
+
+			assert.spy(info_spy).was_not_called()
+			assert.are.equal(0, #refresh_calls)
+		end)
+
+		it("notifies error when the undo call fails", function()
+			ankiconnect.gui_undo = function(on_result)
+				on_result(nil, "offline")
+			end
+
+			note_ops.undo_anki_action()
+			drain_async()
+
+			assert.spy(error_spy).was_called_with("[anki.nvim][note_ops] Failed to undo last Anki action")
+		end)
+	end)
+
+	describe("select_note_in_anki_browser", function()
+		it("selects the card directly in cards mode", function()
+			anki_state.ui.view_mode = "cards"
+			anki_state.ui.cards = { { cardId = 77 } }
+			vim.api.nvim_win_get_cursor = function()
+				return { 4, 0 }
+			end
+
+			note_ops.select_note_in_anki_browser()
+			drain_async()
+
+			assert.are.equal(1, #select_calls)
+			assert.are.equal(77, select_calls[1])
+		end)
+
+		it("resolves the note's first card in notes mode", function()
+			anki_state.ui.view_mode = "notes"
+			anki_state.ui.notes = { { noteId = 42, cards = { 900, 901 } } }
+			vim.api.nvim_win_get_cursor = function()
+				return { 4, 0 }
+			end
+			ankiconnect.notes_info = function(notes, on_result)
+				on_result({ { cards = { 900, 901 } } }, nil)
+			end
+
+			note_ops.select_note_in_anki_browser()
+			drain_async()
+
+			assert.are.equal(1, #select_calls)
+			assert.are.equal(900, select_calls[1])
+		end)
+
+		it("warns when the note has no cards", function()
+			anki_state.ui.notes = { { noteId = 42, cards = {} } }
+			vim.api.nvim_win_get_cursor = function()
+				return { 4, 0 }
+			end
+			ankiconnect.notes_info = function(notes, on_result)
+				on_result({ { cards = {} } }, nil)
+			end
+
+			note_ops.select_note_in_anki_browser()
+			drain_async()
+
+			assert.are.equal(0, #select_calls)
+			assert.spy(warn_spy).was_called_with("[anki.nvim][note_ops] Note under cursor has no cards")
+		end)
+
+		it("notifies error when the select call fails", function()
+			anki_state.ui.view_mode = "cards"
+			anki_state.ui.cards = { { cardId = 77 } }
+			vim.api.nvim_win_get_cursor = function()
+				return { 4, 0 }
+			end
+			ankiconnect.gui_select_card = function(card, on_result)
+				on_result(nil, "browser closed")
+			end
+
+			note_ops.select_note_in_anki_browser()
+			drain_async()
+
+			assert
+				.spy(error_spy)
+				.was_called_with(
+					"[anki.nvim][note_ops] Failed to select the note's card in the Anki browser (is the Anki browser open?)"
+				)
+		end)
+	end)
+
+	describe("sync_selection_from_anki_browser", function()
+		it("builds an nid filter, forces notes mode and refreshes", function()
+			selected_notes_result = { 111, 222 }
+			local refresh_calls = {}
+			operations.refresh_notes = function()
+				table.insert(refresh_calls, true)
+			end
+			anki_state.ui.view_mode = "cards"
+
+			note_ops.sync_selection_from_anki_browser()
+			drain_async()
+
+			assert.are.equal("nid:111 or nid:222", anki_state.ui.current_filter)
+			assert.are.equal("notes", anki_state.ui.view_mode)
+			assert.are.equal(1, #refresh_calls)
+		end)
+
+		it("notifies info and leaves the filter alone when nothing is selected", function()
+			local saved_filter = anki_state.ui.current_filter
+			selected_notes_result = {}
+
+			note_ops.sync_selection_from_anki_browser()
+			drain_async()
+
+			assert.spy(info_spy).was_called_with("[anki.nvim][note_ops] Nothing selected in the Anki browser")
+			assert.are.equal(saved_filter, anki_state.ui.current_filter)
+		end)
+
+		it("notifies error when the selection fetch fails", function()
+			ankiconnect.gui_selected_notes = function(on_result)
+				on_result(nil, "offline")
+			end
+
+			note_ops.sync_selection_from_anki_browser()
+			drain_async()
+
+			assert
+				.spy(error_spy)
+				.was_called_with("[anki.nvim][note_ops] Failed to get the selection from the Anki browser")
+		end)
+	end)
+end)

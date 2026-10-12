@@ -13,7 +13,7 @@ function M.render_hint_line(context)
 	if context == "decks" then
 		m = config.options.mappings.deck
 		return string.format(
-			"Hint: %s add note | %s close | %s create deck | %s delete | %s gui | %s help | %s model | %s profile | %s refresh | %s rename | %s select | %s templates",
+			"Hint: %s add note | %s close | %s create deck | %s delete | %s gui | %s help | %s model | %s profile | %s refresh | %s rename | %s review | %s select | %s templates",
 			m.add_note,
 			m.close,
 			m.create_deck,
@@ -24,13 +24,14 @@ function M.render_hint_line(context)
 			m.switch_profile,
 			m.refresh_decks,
 			m.rename_deck,
+			m.review_deck,
 			m.select_deck,
 			m.edit_templates
 		)
 	elseif context == "notes" then
 		m = config.options.mappings.note
 		return string.format(
-			"Hint: %s all | %s cards/notes | %s close | %s delete | %s edit | %s gui | %s help | %s move | %s refresh | %s search",
+			"Hint: %s all | %s cards/notes | %s close | %s delete | %s edit | %s gui | %s help | %s move | %s refresh | %s search | %s select | %s sync | %s undo",
 			m.show_all_notes,
 			m.toggle_view_mode,
 			m.close,
@@ -40,7 +41,10 @@ function M.render_hint_line(context)
 			m.show_help,
 			m.move_note_to_deck,
 			m.refresh_notes,
-			m.search
+			m.search,
+			m.select_note_in_anki_browser,
+			m.sync_selection_from_anki_browser,
+			m.undo
 		)
 	end
 	return ""
@@ -120,6 +124,7 @@ function M.show_help(context)
 			m.add_note .. " - Add Note (creates on the deck under the cursor)",
 			m.rename_deck .. " - Rename Deck",
 			m.gui_deck .. " - Open in the Anki GUI",
+			m.review_deck .. " - Start review for this deck in the Anki GUI",
 			m.refresh_decks .. " - Refresh Decks",
 			m.switch_profile .. " - Switch Profile",
 			m.edit_templates .. " - Edit card templates",
@@ -143,6 +148,9 @@ function M.show_help(context)
 			m.search .. " - Search notes by query",
 			m.toggle_view_mode .. " - Toggle between notes and cards view",
 			m.move_note_to_deck .. " - Move note's cards to another deck",
+			m.undo .. " - Undo the last Anki action",
+			m.select_note_in_anki_browser .. " - Select the note's card in the open Anki browser",
+			m.sync_selection_from_anki_browser .. " - Show notes selected in the open Anki browser",
 		}
 	elseif context == "editor" then
 		local m = config.options.mappings.editor
@@ -157,6 +165,8 @@ function M.show_help(context)
 			m.attach_media .. " - Attach media (image/audio/video) [field buffers only]",
 			m.new_note .. " - Send note, then reset editor for a new note (sticky fields kept)",
 			m.toggle_sticky .. " - Toggle sticky field (kept when adding next note) [field buffers only]",
+			m.edit_in_anki .. " - Open this note in the Anki GUI edit dialog",
+			m.push_note_to_add_dialog .. " - Push the editor content as a draft into the Anki Add dialog",
 		}
 		-- Append the per-field sticky checkbox section when a note is open in this tab.
 		local note = anki_state.current_notes[vim.api.nvim_get_current_tabpage()]

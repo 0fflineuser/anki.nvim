@@ -112,6 +112,7 @@ function M.setup_deck_keymaps(bufnr)
 		add_note = "<Cmd>lua require('anki.ui.note_ops').add_note()<CR>",
 		rename_deck = "<Cmd>lua require('anki.ui.deck_ops').rename_deck()<CR>",
 		gui_deck = "<Cmd>lua require('anki.ui.deck_ops').gui_deck()<CR>",
+		review_deck = "<Cmd>lua require('anki.ui.deck_ops').review_deck()<CR>",
 		refresh_decks = "<Cmd>lua require('anki.ui.operations').refresh_decks()<CR>",
 		switch_profile = "<Cmd>lua require('anki.ui.profile_ops').switch_profile()<CR>",
 		edit_templates = "<Cmd>lua require('anki.ui.model_ops').edit_model_templates()<CR>",
@@ -142,6 +143,9 @@ function M.setup_note_keymaps(bufnr)
 		move_note_to_deck = "<Cmd>lua require('anki.ui.note_ops').move_note_to_deck()<CR>",
 		search = "<Cmd>lua require('anki.ui.operations').search_notes()<CR>",
 		toggle_view_mode = "<Cmd>lua require('anki.ui.operations').toggle_view_mode()<CR>",
+		undo = "<Cmd>lua require('anki.ui.note_ops').undo_anki_action()<CR>",
+		select_note_in_anki_browser = "<Cmd>lua require('anki.ui.note_ops').select_note_in_anki_browser()<CR>",
+		sync_selection_from_anki_browser = "<Cmd>lua require('anki.ui.note_ops').sync_selection_from_anki_browser()<CR>",
 	}
 
 	for action, key in pairs(config.options.mappings.note) do

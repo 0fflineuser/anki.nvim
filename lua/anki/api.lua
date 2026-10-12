@@ -377,4 +377,35 @@ M.delete_note = function(bufnr)
 	end)
 end
 
+--- Pushes the content of the note editor owning the given buffer to the Anki
+--- GUI Add dialog as a new draft. Does not send the note; Anki keeps the draft
+--- in its Add dialog (returning 0 for the unsaved draft is passed through).
+---@param bufnr number A buffer belonging to the note editor (tags or field buffer).
+M.push_note_to_add_dialog = function(bufnr)
+	if type(bufnr) ~= "number" then
+		error("[anki.nvim][api] push_note_to_add_dialog: bufnr must be a number")
+	end
+	local note = editor.find_note_by_bufnr(bufnr)
+	if not note then
+		notification.warn("[anki.nvim][api] No Anki note buffer found")
+		return
+	end
+
+	local content = note:get_content_from_buffers()
+	local note_payload = {
+		deckName = note.deck_name,
+		modelName = note.model_name,
+		fields = content.fields,
+		tags = content.tags,
+	}
+
+	utils.async_safe_call(ankiconnect.gui_add_cards, { note_payload }, function(result, error)
+		if error then
+			notification.error("[anki.nvim][api] Failed to open the Anki Add dialog")
+			return
+		end
+		notification.info("[anki.nvim][api] Note draft pushed to the Anki Add dialog")
+	end)
+end
+
 return M

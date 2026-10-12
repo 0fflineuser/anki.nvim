@@ -125,6 +125,11 @@ describe("anki.ui.help", function()
 			assert.is_true(found[m.close .. " - Close the note editor"] ~= nil)
 			assert.is_true(found[m.send_note .. " - Write/Send note to Anki"] ~= nil)
 			assert.is_true(found[m.attach_media .. " - Attach media (image/audio/video) [field buffers only]"] ~= nil)
+			assert.is_true(found[m.edit_in_anki .. " - Open this note in the Anki GUI edit dialog"] ~= nil)
+			assert.is_true(
+				found[m.push_note_to_add_dialog .. " - Push the editor content as a draft into the Anki Add dialog"]
+					~= nil
+			)
 		end)
 
 		it("does not reference a 'kill_note' mapping key for editor context", function()
@@ -218,6 +223,21 @@ describe("anki.ui.help", function()
 			config.setup({ mappings = { note = { search = "X" } } })
 			local line = help.render_hint_line("notes")
 			assert.is_true(line:find("X") ~= nil)
+		end)
+
+		it("includes the deck review key in the decks hint line", function()
+			config.setup({})
+			local line = help.render_hint_line("decks")
+			assert.is_true(line:find(" review ") ~= nil)
+		end)
+
+		it("includes undo/select/sync labels in the notes hint line", function()
+			config.setup({})
+			local m = config.options.mappings.note
+			local line = help.render_hint_line("notes")
+			assert.is_true(line:find(" " .. m.select_note_in_anki_browser .. " select ") ~= nil)
+			assert.is_true(line:find(" " .. m.sync_selection_from_anki_browser .. " sync ") ~= nil)
+			assert.is_true(line:find(" " .. m.undo .. " undo$") ~= nil)
 		end)
 	end)
 

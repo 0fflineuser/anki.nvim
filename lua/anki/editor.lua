@@ -148,6 +148,11 @@ function M.display_note(note)
 		new_note = string.format("<Cmd>lua require('anki.api').send_note(%d, false, true)<CR>", tags_bufnr),
 		pull_note = string.format("<Cmd>lua require('anki.api').pull_note(%d)<CR>", tags_bufnr),
 		delete_note = string.format("<Cmd>lua require('anki.api').delete_note(%d)<CR>", tags_bufnr),
+		edit_in_anki = "<Cmd>lua require('anki.ui.note_ops').edit_in_anki()<CR>",
+		push_note_to_add_dialog = string.format(
+			"<Cmd>lua require('anki.api').push_note_to_add_dialog(%d)<CR>",
+			tags_bufnr
+		),
 		show_help = string.format("<Cmd>lua require('anki.ui.help').show_help('editor')<CR>"),
 	}
 
@@ -178,6 +183,11 @@ function M.display_note(note)
 			new_note = string.format("<Cmd>lua require('anki.api').send_note(%d, false, true)<CR>", field_bufnr),
 			pull_note = string.format("<Cmd>lua require('anki.api').pull_note(%d)<CR>", field_bufnr),
 			delete_note = string.format("<Cmd>lua require('anki.api').delete_note(%d)<CR>", field_bufnr),
+			edit_in_anki = "<Cmd>lua require('anki.ui.note_ops').edit_in_anki()<CR>",
+			push_note_to_add_dialog = string.format(
+				"<Cmd>lua require('anki.api').push_note_to_add_dialog(%d)<CR>",
+				field_bufnr
+			),
 			show_help = string.format("<Cmd>lua require('anki.ui.help').show_help('editor')<CR>"),
 			attach_media = string.format("<Cmd>lua require('anki.media').attach_media(%d)<CR>", field_bufnr),
 			toggle_sticky = string.format("<Cmd>lua require('anki.editor').toggle_sticky(%d)<CR>", field_bufnr),

@@ -246,3 +246,110 @@ describe("anki.ui.deck_ops.create_deck", function()
 		end)
 	end)
 end)
+
+describe("anki.ui.deck_ops.review_deck", function()
+	local saved_win_get_cursor
+	local saved_gui_deck_review
+	local info_spy
+	local error_spy
+	local warn_spy
+	local review_calls
+
+	before_each(function()
+		config.setup({})
+		anki_state.ui.decks = { "FooDeck", "BarDeck" }
+		review_calls = {}
+
+		saved_win_get_cursor = vim.api.nvim_win_get_cursor
+		saved_gui_deck_review = ankiconnect.gui_deck_review
+
+		ankiconnect.gui_deck_review = function(name, on_result)
+			table.insert(review_calls, name)
+			on_result(true, nil)
+		end
+		info_spy = spy.on(notification, "info")
+		error_spy = spy.on(notification, "error")
+		warn_spy = spy.on(notification, "warn")
+	end)
+
+	after_each(function()
+		vim.api.nvim_win_get_cursor = saved_win_get_cursor
+		ankiconnect.gui_deck_review = saved_gui_deck_review
+		info_spy:revert()
+		error_spy:revert()
+		warn_spy:revert()
+	end)
+
+	it("calls gui_deck_review with the deck under the cursor (line 4)", function()
+		vim.api.nvim_win_get_cursor = function()
+			return { 4, 0 }
+		end
+
+		deck_ops.review_deck()
+		vim.wait(50, function()
+			return false
+		end)
+
+		assert.are.equal(1, #review_calls)
+		assert.are.equal("FooDeck", review_calls[1])
+	end)
+
+	it("warns and does not call gui_deck_review when cursor is on the header", function()
+		vim.api.nvim_win_get_cursor = function()
+			return { 3, 0 }
+		end
+
+		deck_ops.review_deck()
+		vim.wait(50, function()
+			return false
+		end)
+
+		assert.are.equal(0, #review_calls)
+		assert.spy(warn_spy).was_called()
+	end)
+
+	it("notifies error when gui_deck_review fails", function()
+		vim.api.nvim_win_get_cursor = function()
+			return { 4, 0 }
+		end
+		ankiconnect.gui_deck_review = function(name, on_result)
+			on_result(nil, "browser closed")
+		end
+
+		deck_ops.review_deck()
+		vim.wait(50, function()
+			return false
+		end)
+
+		local found_error = false
+		for _, call in ipairs(error_spy.calls) do
+			local msg = call.vals[1]
+			if type(msg) == "string" and msg:find("Failed to start review for deck 'FooDeck'") then
+				found_error = true
+				break
+			end
+		end
+		assert.is_true(found_error)
+	end)
+
+	it("notifies info on success", function()
+		vim.api.nvim_win_get_cursor = function()
+			return { 4, 0 }
+		end
+
+		deck_ops.review_deck()
+		vim.wait(50, function()
+			return false
+		end)
+
+		local found_info = false
+		for _, call in ipairs(info_spy.calls) do
+			local msg = call.vals[1]
+			if type(msg) == "string" and msg:find("Review started for deck 'FooDeck'") then
+				found_info = true
+				break
+			end
+		end
+		assert.is_true(found_info)
+	end)
+end)

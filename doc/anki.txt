@@ -93,6 +93,7 @@ AnkiDeckMappings                                  *anki.config.AnkiDeckMappings*
         {add_note}        (string)  Add note (default: `"a"`)
         {rename_deck}     (string)  Rename deck (default: `"m"`)
         {gui_deck}        (string)  Open in Anki GUI (default: `"o"`)
+        {review_deck}     (string)  Start review for the deck under the cursor in the Anki GUI (default: `"R"`)
         {refresh_decks}   (string)  Refresh decks (default: `"r"`)
         {switch_profile}  (string)  Switch profile (default: `"p"`)
         {edit_templates}  (string)  Edit card templates (default: `"t"`)
@@ -102,29 +103,34 @@ AnkiDeckMappings                                  *anki.config.AnkiDeckMappings*
 AnkiNoteMappings                                  *anki.config.AnkiNoteMappings*
 
     Fields: ~
-        {show_help}          (string)  Show Help (default: `"g?"`)
-        {close}              (string)  Close (default: `"<leader>k"`)
-        {edit_note}          (string)  Edit note (default: `"<CR>"`)
-        {delete_note}        (string)  Delete note (default: `"d"`)
-        {gui_note}           (string)  Open in Anki GUI (default: `"o"`)
-        {show_all_notes}     (string)  Show all notes (default: `"a"`)
-        {refresh_notes}      (string)  Refresh notes (default: `"r"`)
-        {move_note_to_deck}  (string)  Move note's cards to another deck (default: `"m"`)
-        {search}             (string)  Search notes by query (default: `"f"`)
-        {toggle_view_mode}   (string)  Toggle between notes and cards view (default: `"<Tab>"`)
+        {show_help}                         (string)  Show Help (default: `"g?"`)
+        {close}                             (string)  Close (default: `"<leader>k"`)
+        {edit_note}                         (string)  Edit note (default: `"<CR>"`)
+        {delete_note}                       (string)  Delete note (default: `"d"`)
+        {gui_note}                          (string)  Open in Anki GUI (default: `"o"`)
+        {show_all_notes}                    (string)  Show all notes (default: `"a"`)
+        {refresh_notes}                     (string)  Refresh notes (default: `"r"`)
+        {move_note_to_deck}                 (string)  Move note's cards to another deck (default: `"m"`)
+        {search}                            (string)  Search notes by query (default: `"f"`)
+        {toggle_view_mode}                  (string)  Toggle between notes and cards view (default: `"<Tab>"`)
+        {undo}                              (string)  Undo the last Anki action (default: `"u"`)
+        {select_note_in_anki_browser}       (string)  Select the note's card in the open Anki browser (default: `"s"`)
+        {sync_selection_from_anki_browser}  (string)  Show notes selected in the open Anki browser (default: `"S"`)
 
 
 AnkiEditorMappings                              *anki.config.AnkiEditorMappings*
 
     Fields: ~
-        {close}          (string)  Close note editor (default: `"<leader>k"`)
-        {send_note}      (string)  Send note to Anki (default: `"<leader>w"`)
-        {pull_note}      (string)  Pull note from Anki (default: `"<leader>p"`)
-        {delete_note}    (string)  Delete note (default: `"<leader>r"`)
-        {show_help}      (string)  Show help (default: `"g?"`)
-        {attach_media}   (string)  Attach media to note (default: `"<leader>m"`)
-        {new_note}       (string)  Send note, then reset editor for a new note (default: `"<leader>n"`)
-        {toggle_sticky}  (string)  Toggle sticky field (default: `"<leader>s"`, field buffers only)
+        {close}                    (string)  Close note editor (default: `"<leader>k"`)
+        {send_note}                (string)  Send note to Anki (default: `"<leader>w"`)
+        {pull_note}                (string)  Pull note from Anki (default: `"<leader>p"`)
+        {delete_note}              (string)  Delete note (default: `"<leader>r"`)
+        {show_help}                (string)  Show help (default: `"g?"`)
+        {attach_media}             (string)  Attach media to note (default: `"<leader>m"`)
+        {new_note}                 (string)  Send note, then reset editor for a new note (default: `"<leader>n"`)
+        {toggle_sticky}            (string)  Toggle sticky field (default: `"<leader>s"`, field buffers only)
+        {edit_in_anki}             (string)  Open this note in the Anki GUI edit dialog (default: `"<leader>e"`)
+        {push_note_to_add_dialog}  (string)  Push the editor content as a draft into the Anki Add dialog (default: `"<leader>g"`)
 
 
 AnkiTemplateMappings                          *anki.config.AnkiTemplateMappings*

@@ -45,6 +45,7 @@
 ---@field add_note string Add note (default: `"a"`)
 ---@field rename_deck string Rename deck (default: `"m"`)
 ---@field gui_deck string Open in Anki GUI (default: `"o"`)
+---@field review_deck string Start review for the deck under the cursor in the Anki GUI (default: `"R"`)
 ---@field refresh_decks string Refresh decks (default: `"r"`)
 ---@field switch_profile string Switch profile (default: `"p"`)
 ---@field edit_templates string Edit card templates (default: `"t"`)
@@ -61,6 +62,9 @@
 ---@field move_note_to_deck string Move note's cards to another deck (default: `"m"`)
 ---@field search string Search notes by query (default: `"f"`)
 ---@field toggle_view_mode string Toggle between notes and cards view (default: `"<Tab>"`)
+---@field undo string Undo the last Anki action (default: `"u"`)
+---@field select_note_in_anki_browser string Select the note's card in the open Anki browser (default: `"s"`)
+---@field sync_selection_from_anki_browser string Show notes selected in the open Anki browser (default: `"S"`)
 
 ---@class AnkiEditorMappings
 ---@field close string Close note editor (default: `"<leader>k"`)
@@ -71,6 +75,8 @@
 ---@field attach_media string Attach media to note (default: `"<leader>m"`)
 ---@field new_note string Send note, then reset editor for a new note (default: `"<leader>n"`)
 ---@field toggle_sticky string Toggle sticky field (default: `"<leader>s"`, field buffers only)
+---@field edit_in_anki string Open this note in the Anki GUI edit dialog (default: `"<leader>e"`)
+---@field push_note_to_add_dialog string Push the editor content as a draft into the Anki Add dialog (default: `"<leader>g"`)
 
 ---@class AnkiTemplateMappings
 ---@field save_template string Save template to Anki (default: `"<leader>w"`)
@@ -137,6 +143,7 @@ M.defaults = {
 			add_note = "a",
 			rename_deck = "m",
 			gui_deck = "o",
+			review_deck = "R",
 			refresh_decks = "r",
 			switch_profile = "p",
 			edit_templates = "t",
@@ -153,6 +160,9 @@ M.defaults = {
 			move_note_to_deck = "m",
 			search = "f",
 			toggle_view_mode = "<Tab>",
+			undo = "u",
+			select_note_in_anki_browser = "s",
+			sync_selection_from_anki_browser = "S",
 		},
 		editor = {
 			close = "<leader>k",
@@ -163,6 +173,8 @@ M.defaults = {
 			attach_media = "<leader>m",
 			new_note = "<leader>n",
 			toggle_sticky = "<leader>s",
+			edit_in_anki = "<leader>e",
+			push_note_to_add_dialog = "<leader>g",
 		},
 		template = {
 			save_template = "<leader>w",

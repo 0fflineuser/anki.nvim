@@ -157,6 +157,7 @@ require("anki").setup({
       add_note = "a",
       rename_deck = "m",
       gui_deck = "o",
+      review_deck = "R",
       refresh_decks = "r",
       switch_profile = "p",
       edit_templates = "t",
@@ -173,6 +174,9 @@ require("anki").setup({
       move_note_to_deck = "m",
       search = "f",
       toggle_view_mode = "<Tab>",
+      undo = "u",
+      select_note_in_anki_browser = "s",
+      sync_selection_from_anki_browser = "S",
     },
     editor = {
       close = "<leader>k",
@@ -183,6 +187,8 @@ require("anki").setup({
       attach_media = "<leader>m",
       new_note = "<leader>n",
       toggle_sticky = "<leader>s",
+      edit_in_anki = "<leader>e",
+      push_note_to_add_dialog = "<leader>g",
     },
     template = {
       save_template = "<leader>w",
@@ -226,6 +232,7 @@ These keymaps are configurable, see the `Configuration` section.
  | `a`    | Add a note to the deck under the cursor |
  | `m`    | Rename deck under the cursor            |
  | `o`    | Open the selected deck in the Anki GUI  |
+ | `R`    | Start review for the deck under the cursor in the Anki GUI |
  | `r`    | Refresh decks                           |
  | `p`    | Switch Anki profile                     |
  | `t`    | Edit card templates for the model       |
@@ -245,6 +252,9 @@ These keymaps are configurable, see the `Configuration` section.
   | `m`      | Move the selected note's cards to another deck |
   | `f`      | Search notes by AnkiConnect query              |
   | `<Tab>`  | Toggle between notes and cards view            |
+  | `u`      | Undo the last Anki action                      |
+  | `s`      | Select the note's card in the open Anki browser |
+  | `S`      | Show notes selected in the open Anki browser   |
 
 ### Note Editor Keymaps
 
@@ -258,6 +268,8 @@ These keymaps are configurable, see the `Configuration` section.
   | `<leader>m`  | \*M\*edia/Attach media to the current field        |
   | `<leader>n`  | \*N\*ew note: send the current note, then reset the editor for a new note (sticky fields kept) |
   | `<leader>s`  | \*S\*ticky/Toggle sticky field (field buffers only; kept when adding the next note). Also shown as a `<C-Space>` toggle box in the editor help window |
+  | `<leader>e`  | Open this note in the Anki GUI edit dialog |
+  | `<leader>g`  | \*G\*UI/Push the editor content as a draft into the Anki Add dialog |
 
 ### Template Editor Keymaps
 
