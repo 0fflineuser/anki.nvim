@@ -102,7 +102,8 @@ function M.create_note(deck_name, model_name, field_names, id)
 				editor_context = EditorContext:new({
 					winid = 0,
 					tabid = 0,
-					bufnr = vim.api.nvim_create_buf(true, true),
+					-- unlisted, consistent with all other internal buffers
+					bufnr = vim.api.nvim_create_buf(false, true),
 				}),
 				name = name,
 			})
@@ -114,7 +115,8 @@ function M.create_note(deck_name, model_name, field_names, id)
 		tags = EditorContext:new({
 			winid = 0,
 			tabid = 0,
-			bufnr = vim.api.nvim_create_buf(true, true),
+			-- unlisted, so auto-close plugins don't delete it
+			bufnr = vim.api.nvim_create_buf(false, true),
 		}),
 		deck_name = deck_name,
 		model_name = model_name,
