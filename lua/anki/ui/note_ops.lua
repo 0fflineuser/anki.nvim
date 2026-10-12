@@ -94,13 +94,13 @@ function M.edit_note()
 
 	local note = entry
 	if anki_state.ui.view_mode == "cards" then
-		-- cardsInfo rows include a noteId; fetch the note info to edit.
-		if not entry.noteId then
-			notification.warn("[anki.nvim][note_ops] Card has no noteId; cannot edit.")
+		-- cardsInfo rows carry the parent note id under the `note` key; fetch the note info to edit.
+		if type(entry.note) ~= "number" then
+			notification.warn("[anki.nvim][note_ops] Card not found in Anki — refresh the browser (r)")
 			return
 		end
-		utils.async_safe_call(ankiconnect.notes_info, { { entry.noteId } }, function(notes_info, err)
-			if err or not notes_info or not notes_info[1] then
+		utils.async_safe_call(ankiconnect.notes_info, { { entry.note } }, function(notes_info, err)
+			if err or not notes_info or not notes_info[1] or not notes_info[1].fields then
 				notification.error("[anki.nvim][note_ops] Could not fetch note info for card.")
 				return
 			end
@@ -113,6 +113,11 @@ function M.edit_note()
 				operations.refresh_all()
 			end)
 		end)
+		return
+	end
+
+	if not note.fields then
+		notification.warn("[anki.nvim][note_ops] Note not found in Anki — refresh the browser (r)")
 		return
 	end
 
@@ -185,9 +190,9 @@ function M.delete_note()
 	if anki_state.ui.view_mode == "cards" then
 		local seen = {}
 		for _, card in ipairs(entries) do
-			if card.noteId and not seen[card.noteId] then
-				seen[card.noteId] = true
-				table.insert(note_ids, card.noteId)
+			if card.note and not seen[card.note] then
+				seen[card.note] = true
+				table.insert(note_ids, card.note)
 			end
 		end
 	else
@@ -323,7 +328,7 @@ function M.gui_note()
 				return
 			end
 			notification.info(
-				"[anki.nvim][note_ops] Note revealed in the Anki Browser - press Ctrl+Shift+P there to preview"
+				"[anki.nvim][note_ops] Note revealed in the Anki Browser — press Ctrl+Shift+P there to preview"
 			)
 		end)
 		return

@@ -5,6 +5,7 @@ local ankiconnect = require("anki.ankiconnect")
 local editor = require("anki.editor")
 local operations = require("anki.ui.operations")
 local notification = require("anki.notification")
+local utils = require("anki.utils")
 local spy = require("luassert.spy")
 
 -- Sentinel note object returned by the editor.create_note stub so we never
@@ -784,5 +785,246 @@ describe("anki.ui.note_ops.gui_note editor help text", function()
 			joined:find("Reveal this note in the Anki Browser %(Ctrl%+Shift%+P there previews the card%)", 1, false)
 		)
 		vim.api.nvim_buf_delete(help_bufnr, { force = true })
+	end)
+end)
+
+describe("anki.ui.note_ops.edit_note", function()
+	local stubs
+	local warn_spy
+	local error_spy
+	local notes_info_calls
+	local notes_info_result
+	local notes_info_error
+	local focus_calls
+	local focus_result
+	local open_calls
+	local refresh_calls
+
+	before_each(function()
+		config.setup({})
+		anki_state.ui.decks = {}
+		anki_state.ui.notes = {}
+		anki_state.ui.cards = {}
+		anki_state.ui.view_mode = "notes"
+		notes_info_calls = {}
+		notes_info_result = nil
+		notes_info_error = nil
+		focus_calls = {}
+		focus_result = false
+		open_calls = {}
+		refresh_calls = {}
+
+		stubs = make_stubs({})
+		apply_stubs(stubs)
+
+		-- Save and stub the pieces edit_note uses directly.
+		stubs._saved.notes_info = ankiconnect.notes_info
+		stubs._saved.focus_note_by_id = editor.focus_note_by_id
+		stubs._saved.open_note_in_editor = note_ops.open_note_in_editor
+
+		ankiconnect.notes_info = function(note_ids, on_result)
+			table.insert(notes_info_calls, note_ids)
+			if notes_info_error then
+				on_result(nil, notes_info_error)
+			else
+				on_result(notes_info_result, nil)
+			end
+		end
+		editor.focus_note_by_id = function(note_id)
+			table.insert(focus_calls, note_id)
+			return focus_result
+		end
+		note_ops.open_note_in_editor = function(note)
+			table.insert(open_calls, note)
+		end
+		operations.refresh_all = function()
+			table.insert(refresh_calls, true)
+		end
+
+		warn_spy = spy.on(notification, "warn")
+		error_spy = spy.on(notification, "error")
+	end)
+
+	after_each(function()
+		ankiconnect.notes_info = stubs._saved.notes_info
+		editor.focus_note_by_id = stubs._saved.focus_note_by_id
+		note_ops.open_note_in_editor = stubs._saved.open_note_in_editor
+		restore_stubs(stubs)
+		warn_spy:revert()
+		error_spy:revert()
+		anki_state.current_notes = {}
+	end)
+
+	it("resolves the parent note via entry.note in cards mode (focus path)", function()
+		anki_state.ui.cards = { { cardId = 77, note = 42 } }
+		anki_state.ui.view_mode = "cards"
+		notes_info_result = {
+			{ noteId = 42, modelName = "Basic", tags = {}, fields = { Front = { value = "q", order = 0 } } },
+		}
+		focus_result = true
+
+		vim.api.nvim_win_get_cursor = function()
+			return { 4, 0 }
+		end
+
+		note_ops.edit_note()
+		drain_async()
+
+		assert.are.same({ { 42 } }, notes_info_calls)
+		assert.are.same({ 42 }, focus_calls)
+		assert.are.equal(0, #open_calls)
+		assert.are.equal(0, #refresh_calls)
+		assert.spy(warn_spy).was_not_called()
+	end)
+
+	it("opens the parent note in the editor when not already open", function()
+		anki_state.ui.cards = { { cardId = 77, note = 42 } }
+		anki_state.ui.view_mode = "cards"
+		notes_info_result = {
+			{ noteId = 42, modelName = "Basic", tags = {}, fields = { Front = { value = "q", order = 0 } } },
+		}
+		focus_result = false
+
+		vim.api.nvim_win_get_cursor = function()
+			return { 4, 0 }
+		end
+
+		note_ops.edit_note()
+		drain_async()
+
+		assert.are.equal(1, #open_calls)
+		assert.are.equal(42, open_calls[1].noteId)
+		assert.are.same({ true }, refresh_calls)
+	end)
+
+	it("warns when the card row has no note key", function()
+		anki_state.ui.cards = { {} }
+		anki_state.ui.view_mode = "cards"
+
+		vim.api.nvim_win_get_cursor = function()
+			return { 4, 0 }
+		end
+
+		note_ops.edit_note()
+		drain_async()
+
+		assert.spy(warn_spy).was_called_with("[anki.nvim][note_ops] Card not found in Anki — refresh the browser (r)")
+		assert.are.equal(0, #notes_info_calls)
+		assert.are.equal(0, #open_calls)
+	end)
+
+	it("errors when notes_info returns an empty row", function()
+		anki_state.ui.cards = { { cardId = 77, note = 42 } }
+		anki_state.ui.view_mode = "cards"
+		notes_info_result = {}
+
+		vim.api.nvim_win_get_cursor = function()
+			return { 4, 0 }
+		end
+
+		note_ops.edit_note()
+		drain_async()
+
+		assert.spy(error_spy).was_called_with("[anki.nvim][note_ops] Could not fetch note info for card.")
+		assert.are.equal(0, #open_calls)
+	end)
+
+	it("warns on a dead row in notes mode", function()
+		anki_state.ui.notes = { {} }
+		anki_state.ui.view_mode = "notes"
+
+		vim.api.nvim_win_get_cursor = function()
+			return { 4, 0 }
+		end
+
+		note_ops.edit_note()
+		drain_async()
+
+		assert.are.equal(0, #notes_info_calls)
+		assert.are.equal(0, #open_calls)
+		assert.spy(warn_spy).was_called_with("[anki.nvim][note_ops] Note not found in Anki — refresh the browser (r)")
+	end)
+end)
+
+describe("anki.ui.note_ops.delete_note", function()
+	local stubs
+	local saved_win_id
+	local input_calls
+	local input_answer
+	local delete_calls
+	local delete_error
+	local refresh_calls
+
+	before_each(function()
+		config.setup({})
+		anki_state.ui.decks = {}
+		anki_state.ui.notes = {}
+		anki_state.ui.cards = {}
+		anki_state.ui.view_mode = "cards"
+		saved_win_id = anki_state.win_id
+		anki_state.win_id = -1
+		input_calls = {}
+		input_answer = "y"
+		delete_calls = {}
+		delete_error = nil
+		refresh_calls = {}
+
+		stubs = make_stubs({ refresh_all = function() end })
+		apply_stubs(stubs)
+		operations.refresh_all = function()
+			table.insert(refresh_calls, true)
+		end
+
+		stubs._saved.delete_notes = ankiconnect.delete_notes
+		ankiconnect.delete_notes = function(note_ids, on_result)
+			table.insert(delete_calls, note_ids)
+			if delete_error then
+				on_result(nil, delete_error)
+			else
+				on_result({}, nil)
+			end
+		end
+
+		stubs._saved.vim_ui_input = vim.ui.input
+		vim.ui.input = function(opts, on_result)
+			table.insert(input_calls, opts.prompt)
+			on_result(input_answer)
+		end
+
+		stubs._saved.get_visual_line_range = utils.get_visual_line_range
+		utils.get_visual_line_range = function()
+			return 4, 5
+		end
+	end)
+
+	after_each(function()
+		vim.ui.input = stubs._saved.vim_ui_input
+		utils.get_visual_line_range = stubs._saved.get_visual_line_range
+		ankiconnect.delete_notes = stubs._saved.delete_notes
+		anki_state.win_id = saved_win_id
+		restore_stubs(stubs)
+	end)
+
+	it("deletes the deduplicated parent notes of selected cards", function()
+		anki_state.ui.cards = { { cardId = 77, note = 42 }, { cardId = 78, note = 52 } }
+		anki_state.ui.view_mode = "cards"
+
+		note_ops.delete_note()
+		drain_async()
+
+		assert.are.same({ { 42, 52 } }, delete_calls)
+		assert.are.same({ true }, refresh_calls)
+		assert.are.equal(1, #input_calls)
+	end)
+
+	it("dedups multiple cards of one note to the single parent note", function()
+		anki_state.ui.cards = { { cardId = 77, note = 42 }, { cardId = 78, note = 42 } }
+		anki_state.ui.view_mode = "cards"
+
+		note_ops.delete_note()
+		drain_async()
+
+		assert.are.same({ { 42 } }, delete_calls)
+		assert.are.same({ true }, refresh_calls)
 	end)
 end)
