@@ -77,6 +77,7 @@
 ---@field toggle_sticky string Toggle sticky field (default: `"<leader>s"`, field buffers only)
 ---@field edit_in_anki string Open this note in the Anki GUI edit dialog (default: `"<leader>e"`)
 ---@field push_note_to_add_dialog string Push the editor content as a draft into the Anki Add dialog (default: `"<leader>g"`)
+---@field gui_note string Reveal this note in the Anki Browser; preview via Ctrl+Shift+P in Anki (default: `"<leader>o"`)
 
 ---@class AnkiTemplateMappings
 ---@field save_template string Save template to Anki (default: `"<leader>w"`)
@@ -175,6 +176,7 @@ M.defaults = {
 			toggle_sticky = "<leader>s",
 			edit_in_anki = "<leader>e",
 			push_note_to_add_dialog = "<leader>g",
+			gui_note = "<leader>o",
 		},
 		template = {
 			save_template = "<leader>w",

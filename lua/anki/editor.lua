@@ -154,6 +154,7 @@ function M.display_note(note)
 			tags_bufnr
 		),
 		show_help = string.format("<Cmd>lua require('anki.ui.help').show_help('editor')<CR>"),
+		gui_note = "<Cmd>lua require('anki.ui.note_ops').gui_note()<CR>",
 	}
 
 	for action, key in pairs(config.options.mappings.editor) do
@@ -189,6 +190,7 @@ function M.display_note(note)
 				field_bufnr
 			),
 			show_help = string.format("<Cmd>lua require('anki.ui.help').show_help('editor')<CR>"),
+			gui_note = "<Cmd>lua require('anki.ui.note_ops').gui_note()<CR>",
 			attach_media = string.format("<Cmd>lua require('anki.media').attach_media(%d)<CR>", field_bufnr),
 			toggle_sticky = string.format("<Cmd>lua require('anki.editor').toggle_sticky(%d)<CR>", field_bufnr),
 		}

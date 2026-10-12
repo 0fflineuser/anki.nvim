@@ -568,3 +568,221 @@ describe("anki.ui.note_ops undo/select/sync", function()
 		end)
 	end)
 end)
+
+describe("anki.ui.note_ops.gui_note from the editor tab", function()
+	local stubs
+	local browse_calls
+	local info_spy
+	local error_spy
+	local warn_spy
+	local browse_error
+
+	--- Builds a real note (with real buffers) for the current tab.
+	local function make_note(id)
+		local note = editor.create_note("TestDeck", "TestModel", { "Front" })
+		note.id = id
+		local tabid = vim.api.nvim_get_current_tabpage()
+		anki_state.current_notes[tabid] = note
+		note.tabid = tabid
+		return note
+	end
+
+	--- Deletes the note's buffers (make_note never opens windows or tabs).
+	local function cleanup_buffers(note)
+		if note.tags then
+			pcall(vim.api.nvim_buf_delete, note.tags.bufnr, { force = true })
+		end
+		for _, field in ipairs(note.fields or {}) do
+			pcall(vim.api.nvim_buf_delete, field.editor_context.bufnr, { force = true })
+		end
+	end
+
+	before_each(function()
+		config.setup({})
+		for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+			if vim.api.nvim_buf_is_valid(bufnr) then
+				local name = vim.api.nvim_buf_get_name(bufnr)
+				if name:find("anki://", 1, true) then
+					pcall(vim.api.nvim_buf_delete, bufnr, { force = true })
+				end
+			end
+		end
+		anki_state.current_notes = {}
+		anki_state.ui.notes = {}
+		anki_state.ui.cards = {}
+		anki_state.ui.view_mode = "notes"
+		anki_state.ui.current_filter = nil
+
+		browse_calls = {}
+		browse_error = nil
+
+		stubs = make_stubs({})
+		apply_stubs(stubs)
+
+		stubs._saved.gui_browse = ankiconnect.gui_browse
+		ankiconnect.gui_browse = function(query, on_result)
+			table.insert(browse_calls, query)
+			if browse_error then
+				on_result(nil, browse_error)
+			else
+				on_result({ 123 }, nil)
+			end
+		end
+
+		info_spy = spy.on(notification, "info")
+		error_spy = spy.on(notification, "error")
+		warn_spy = spy.on(notification, "warn")
+	end)
+
+	after_each(function()
+		restore_stubs(stubs)
+		ankiconnect.gui_browse = stubs._saved.gui_browse
+		info_spy:revert()
+		error_spy:revert()
+		warn_spy:revert()
+		anki_state.current_notes = {}
+	end)
+
+	it("calls gui_browse with nid:<id> and notifies info with the preview hint", function()
+		local note = make_note(123)
+
+		note_ops.gui_note()
+		drain_async()
+
+		assert.are.equal(1, #browse_calls)
+		assert.are.equal("nid:123", browse_calls[1])
+		assert
+			.spy(info_spy)
+			.was_called_with("[anki.nvim][note_ops] Note revealed in the Anki Browser — press Ctrl+Shift+P there to preview")
+		assert.spy(error_spy).was_not_called()
+		cleanup_buffers(note)
+	end)
+
+	it("warns on an unsaved note and does not call gui_browse", function()
+		local note = make_note(nil)
+
+		note_ops.gui_note()
+		drain_async()
+
+		assert.are.equal(0, #browse_calls)
+		assert
+			.spy(warn_spy)
+			.was_called_with("[anki.nvim][note_ops] Note is not saved to Anki yet — send it first (<leader>w)")
+		cleanup_buffers(note)
+	end)
+
+	it("notifies error when the browser call fails", function()
+		local note = make_note(123)
+		browse_error = "offline"
+
+		note_ops.gui_note()
+		drain_async()
+
+		assert.are.equal(1, #browse_calls)
+		assert.spy(error_spy).was_called_with("[anki.nvim][note_ops] Failed to open the note in the Anki Browser")
+		assert.spy(info_spy).was_not_called()
+		cleanup_buffers(note)
+	end)
+
+	it("keeps the browser-pane nid path untouched when no note is being edited", function()
+		local saved_cursor = vim.api.nvim_win_get_cursor
+		anki_state.ui.notes = { { noteId = 42, cards = { 900 } } }
+		vim.api.nvim_win_get_cursor = function()
+			return { 4, 0 }
+		end
+
+		note_ops.gui_note()
+		drain_async()
+
+		vim.api.nvim_win_get_cursor = saved_cursor
+		assert.are.equal(1, #browse_calls)
+		assert.are.equal("nid:42", browse_calls[1])
+		assert.spy(info_spy).was_not_called()
+		assert.spy(warn_spy).was_not_called()
+	end)
+end)
+
+describe("anki.ui.note_ops.gui_note editor keymap wiring", function()
+	before_each(function()
+		config.setup({})
+		for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+			if vim.api.nvim_buf_is_valid(bufnr) then
+				local name = vim.api.nvim_buf_get_name(bufnr)
+				if name:find("anki://", 1, true) then
+					pcall(vim.api.nvim_buf_delete, bufnr, { force = true })
+				end
+			end
+		end
+		anki_state.current_notes = {}
+	end)
+
+	after_each(function()
+		anki_state.current_notes = {}
+	end)
+
+	it("maps gui_note on the tags buffer and every field buffer", function()
+		local note = editor.create_note("TestDeck", "TestModel", { "Front", "Back" })
+		editor.display_note(note)
+
+		for _, bufnr in ipairs({
+			note.tags.bufnr,
+			note.fields[1].editor_context.bufnr,
+			note.fields[2].editor_context.bufnr,
+		}) do
+			local found = false
+			for _, map in ipairs(vim.api.nvim_buf_get_keymap(bufnr, "n")) do
+				if tostring(map.rhs or map.callback):find("gui_note", 1, true) then
+					found = true
+				end
+			end
+			assert.is_true(found)
+		end
+
+		editor.delete_note_buffers(note)
+	end)
+end)
+
+describe("anki.ui.note_ops.gui_note editor help text", function()
+	before_each(function()
+		config.setup({})
+		for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+			if vim.api.nvim_buf_is_valid(bufnr) then
+				local name = vim.api.nvim_buf_get_name(bufnr)
+				if name:find("anki://", 1, true) or name:find("Anki Help", 1, true) then
+					pcall(vim.api.nvim_buf_delete, bufnr, { force = true })
+				end
+			end
+		end
+		anki_state.current_notes = {}
+	end)
+
+	after_each(function()
+		anki_state.current_notes = {}
+	end)
+
+	it("lists the gui_note reveal hint in the editor help", function()
+		local help = require("anki.ui.help")
+		local note = editor.create_note("TestDeck", "TestModel", { "Front" })
+		local tabid = vim.api.nvim_get_current_tabpage()
+		anki_state.current_notes[tabid] = note
+		note.tabid = tabid
+
+		local help_bufnr = nil
+		local saved_open_win = vim.api.nvim_open_win
+		vim.api.nvim_open_win = function(buffer, enter, opts)
+			help_bufnr = buffer
+			return saved_open_win(buffer, enter, opts)
+		end
+		local ok, err = pcall(help.show_help, "editor")
+		vim.api.nvim_open_win = saved_open_win
+		if not ok then
+			error(err)
+		end
+
+		local joined = table.concat(vim.api.nvim_buf_get_lines(help_bufnr, 0, -1, false), "\n")
+		assert.truthy(
+			joined:find("Reveal this note in the Anki Browser %(Ctrl%+Shift%+P there previews the card%)", 1, false)
+		)
+		vim.api.nvim_buf_delete(help_bufnr, { force = true })
+	end)
+end)

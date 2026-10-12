@@ -307,7 +307,27 @@ end
 
 --- Opens the GUI browser for the entry at the current cursor line in Anki.
 --- In notes mode uses nid:<noteId>; in cards mode uses cid:<cardId>.
+--- When called from a note editor tab, reveals the note being edited instead
+--- (preview via Ctrl+Shift+P in the Anki Browser).
 function M.gui_note()
+	local tabid = vim.api.nvim_get_current_tabpage()
+	local editing_note = anki_state.current_notes[tabid]
+	if editing_note then
+		if not editing_note.id then
+			notification.warn("[anki.nvim][note_ops] Note is not saved to Anki yet — send it first (<leader>w)")
+			return
+		end
+		utils.async_safe_call(ankiconnect.gui_browse, { string.format("nid:%s", editing_note.id) }, function(_, error)
+			if error then
+				notification.error("[anki.nvim][note_ops] Failed to open the note in the Anki Browser")
+				return
+			end
+			notification.info(
+				"[anki.nvim][note_ops] Note revealed in the Anki Browser - press Ctrl+Shift+P there to preview"
+			)
+		end)
+		return
+	end
 	local entry = entry_at_cursor()
 	if not entry then
 		return

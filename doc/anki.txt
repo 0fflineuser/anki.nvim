@@ -131,6 +131,7 @@ AnkiEditorMappings                              *anki.config.AnkiEditorMappings*
         {toggle_sticky}            (string)  Toggle sticky field (default: `"<leader>s"`, field buffers only)
         {edit_in_anki}             (string)  Open this note in the Anki GUI edit dialog (default: `"<leader>e"`)
         {push_note_to_add_dialog}  (string)  Push the editor content as a draft into the Anki Add dialog (default: `"<leader>g"`)
+        {gui_note}                 (string)  Reveal this note in the Anki Browser; preview via Ctrl+Shift+P in Anki (default: `"<leader>o"`)
 
 
 AnkiTemplateMappings                          *anki.config.AnkiTemplateMappings*

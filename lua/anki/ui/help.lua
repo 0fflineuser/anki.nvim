@@ -168,6 +168,7 @@ function M.show_help(context)
 			m.toggle_sticky .. " - Toggle sticky field (kept when adding next note) [field buffers only]",
 			m.edit_in_anki .. " - Open this note in the Anki GUI edit dialog",
 			m.push_note_to_add_dialog .. " - Push the editor content as a draft into the Anki Add dialog",
+			m.gui_note .. " - Reveal this note in the Anki Browser (Ctrl+Shift+P there previews the card)",
 		}
 		-- Append the per-field sticky checkbox section when a note is open in this tab.
 		local note = anki_state.current_notes[vim.api.nvim_get_current_tabpage()]

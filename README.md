@@ -189,6 +189,7 @@ require("anki").setup({
       toggle_sticky = "<leader>s",
       edit_in_anki = "<leader>e",
       push_note_to_add_dialog = "<leader>g",
+      gui_note = "<leader>o",
     },
     template = {
       save_template = "<leader>w",
@@ -270,6 +271,7 @@ These keymaps are configurable, see the `Configuration` section.
   | `<leader>s`  | \*S\*ticky/Toggle sticky field (field buffers only; kept when adding the next note). Also shown as a `<C-Space>` toggle box in the editor help window |
   | `<leader>e`  | Open this note in the Anki GUI edit dialog |
   | `<leader>g`  | \*G\*UI/Push the editor content as a draft into the Anki Add dialog |
+  | `<leader>o`  | Reveal this note in the Anki Browser (`Ctrl+Shift+P` there previews the card) |
 
 ### Template Editor Keymaps
 
