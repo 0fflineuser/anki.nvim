@@ -15,7 +15,7 @@ local function make_note_with_real_bufs(fields_spec)
 	local note_fields = {}
 	local field_bufnrs = {}
 	for _, spec in ipairs(fields_spec) do
-		local bufnr = vim.api.nvim_create_buf(true, true)
+		local bufnr = vim.api.nvim_create_buf(false, true)
 		vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, spec.lines or { "" })
 		table.insert(field_bufnrs, bufnr)
 		table.insert(
@@ -31,7 +31,7 @@ local function make_note_with_real_bufs(fields_spec)
 		)
 	end
 
-	local tags_bufnr = vim.api.nvim_create_buf(true, true)
+	local tags_bufnr = vim.api.nvim_create_buf(false, true)
 	vim.api.nvim_buf_set_lines(tags_bufnr, 0, -1, false, { "tag1" })
 
 	local note = Note:new({

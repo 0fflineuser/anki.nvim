@@ -10,8 +10,8 @@ local notification = require("anki.notification")
 local spy = require("luassert.spy")
 
 local function make_note_with_real_bufs()
-	local field_bufnr = vim.api.nvim_create_buf(true, true)
-	local tags_bufnr = vim.api.nvim_create_buf(true, true)
+	local field_bufnr = vim.api.nvim_create_buf(false, true)
+	local tags_bufnr = vim.api.nvim_create_buf(false, true)
 	vim.api.nvim_buf_set_lines(field_bufnr, 0, -1, false, { "hello" })
 	vim.api.nvim_buf_set_lines(tags_bufnr, 0, -1, false, { "tag1" })
 
