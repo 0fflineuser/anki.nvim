@@ -1028,3 +1028,118 @@ describe("anki.ui.note_ops.delete_note", function()
 		assert.are.same({ true }, refresh_calls)
 	end)
 end)
+
+describe("anki.ui.windows note-pane p/y keymap wiring", function()
+	local windows = require("anki.ui.windows")
+	local saved_note_mappings
+	local bufnr
+
+	before_each(function()
+		config.setup({})
+		saved_note_mappings = vim.deepcopy(config.options.mappings.note)
+		for _, b in ipairs(vim.api.nvim_list_bufs()) do
+			if vim.api.nvim_buf_is_valid(b) and vim.api.nvim_buf_get_name(b) == "" and vim.bo[b].buftype == "" then
+				pcall(vim.api.nvim_buf_delete, b, { force = true })
+			end
+		end
+		bufnr = vim.api.nvim_create_buf(false, true)
+		vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { "placeholder" })
+		windows.setup_note_keymaps(bufnr)
+	end)
+
+	after_each(function()
+		if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+			pcall(vim.api.nvim_buf_delete, bufnr, { force = true })
+		end
+		config.setup({})
+	end)
+
+	local function mapped_lhs(buf, mode)
+		local set = {}
+		for _, map in ipairs(vim.api.nvim_buf_get_keymap(buf, mode)) do
+			set[map.lhs] = true
+		end
+		return set
+	end
+
+	-- Finds the lhs a given action (matched by rhs substring) is mapped to.
+	-- nvim_buf_set_keymap expands <leader> in the lhs at set time, so custom
+	-- "<leader>P" style mappings are stored as e.g. "\P".
+	local function lhs_for(buf, mode, rhs_needle)
+		for _, map in ipairs(vim.api.nvim_buf_get_keymap(buf, mode)) do
+			if map.rhs and map.rhs:find(rhs_needle, 1, true) then
+				return map.lhs
+			end
+		end
+	end
+
+	local function fresh_note_buf()
+		if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+			vim.api.nvim_buf_delete(bufnr, { force = true })
+		end
+		bufnr = vim.api.nvim_create_buf(false, true)
+		vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, { "placeholder" })
+		windows.setup_note_keymaps(bufnr)
+		return mapped_lhs(bufnr, "n")
+	end
+
+	it("maps p to select_note_in_anki_browser and unbinds s", function()
+		local set = mapped_lhs(bufnr, "n")
+		assert.is_true(set["p"] == true)
+		assert.is_true(set["s"] == nil)
+	end)
+
+	it("maps y to sync_selection_from_anki_browser and unbinds S", function()
+		local set = mapped_lhs(bufnr, "n")
+		assert.is_true(set["y"] == true)
+		assert.is_true(set["S"] == nil)
+	end)
+
+	it("respects custom remaps for both actions", function()
+		config.setup({ mappings = { note = { select_note_in_anki_browser = "<leader>P" } } })
+		local set = fresh_note_buf()
+		assert.are.equal((vim.g.mapleader or "\\") .. "P", lhs_for(bufnr, "n", "select_note_in_anki_browser"))
+		assert.is_true(set["p"] == nil)
+		assert.is_true(set["y"] == true)
+	end)
+
+	it("respects a custom yank remap while other notes keep defaults", function()
+		config.setup({ mappings = { note = { sync_selection_from_anki_browser = "<leader>Y" } } })
+		local set = fresh_note_buf()
+		assert.are.equal((vim.g.mapleader or "\\") .. "Y", lhs_for(bufnr, "n", "sync_selection_from_anki_browser"))
+		assert.is_true(set["p"] == true)
+		assert.is_true(set["y"] == nil)
+	end)
+
+	it("pressing p invokes select_note_in_anki_browser", function()
+		local saved_select = note_ops.select_note_in_anki_browser
+		local calls = 0
+		note_ops.select_note_in_anki_browser = function()
+			calls = calls + 1
+		end
+
+		local win = vim.api.nvim_get_current_win()
+		pcall(vim.api.nvim_win_set_buf, win, bufnr)
+		vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("p", true, false, true), "mx", false)
+		drain_async()
+
+		note_ops.select_note_in_anki_browser = saved_select
+		assert.are.equal(1, calls)
+	end)
+
+	it("pressing y invokes sync_selection_from_anki_browser", function()
+		local saved_sync = note_ops.sync_selection_from_anki_browser
+		local calls = 0
+		note_ops.sync_selection_from_anki_browser = function()
+			calls = calls + 1
+		end
+
+		local win = vim.api.nvim_get_current_win()
+		pcall(vim.api.nvim_win_set_buf, win, bufnr)
+		vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("y", true, false, true), "mx", false)
+		drain_async()
+
+		note_ops.sync_selection_from_anki_browser = saved_sync
+		assert.are.equal(1, calls)
+	end)
+end)

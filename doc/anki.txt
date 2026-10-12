@@ -94,6 +94,7 @@ AnkiDeckMappings                                  *anki.config.AnkiDeckMappings*
         {rename_deck}     (string)  Rename deck (default: `"m"`)
         {gui_deck}        (string)  Open in Anki GUI (default: `"o"`)
         {review_deck}     (string)  Start review for the deck under the cursor in the Anki GUI (default: `"R"`)
+        {deck_stats}      (string)  Show deck statistics popup (default: `"s"`)
         {refresh_decks}   (string)  Refresh decks (default: `"r"`)
         {switch_profile}  (string)  Switch profile (default: `"p"`)
         {edit_templates}  (string)  Edit card templates (default: `"t"`)
@@ -114,8 +115,8 @@ AnkiNoteMappings                                  *anki.config.AnkiNoteMappings*
         {search}                            (string)  Search notes by query (default: `"f"`)
         {toggle_view_mode}                  (string)  Toggle between notes and cards view (default: `"<Tab>"`)
         {undo}                              (string)  Undo the last Anki action (default: `"u"`)
-        {select_note_in_anki_browser}       (string)  Reveal the note's first card in the open Anki browser (default: `"s"`)
-        {sync_selection_from_anki_browser}  (string)  Import the Anki Browser selection as the notes pane filter (default: `"S"`)
+        {select_note_in_anki_browser}       (string)  Reveal the note's first card in the open Anki browser (default: `"p"`)
+        {sync_selection_from_anki_browser}  (string)  Import the Anki Browser selection as the notes pane filter (default: `"y"`)
 
 
 AnkiEditorMappings                              *anki.config.AnkiEditorMappings*

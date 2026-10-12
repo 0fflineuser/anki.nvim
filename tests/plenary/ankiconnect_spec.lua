@@ -64,6 +64,20 @@ describe("anki.ankiconnect card wrappers", function()
 	end)
 end)
 
+describe("anki.ankiconnect statistic action wrappers", function()
+	it("exposes the statistic wrappers as functions", function()
+		assert.is_function(ankiconnect.get_deck_stats)
+		assert.is_function(ankiconnect.get_num_cards_reviewed_today)
+		assert.is_function(ankiconnect.get_num_cards_reviewed_by_day)
+	end)
+
+	it("throws error when decks is not a table", function()
+		assert.has_error(function()
+			ankiconnect.get_deck_stats(123, function() end)
+		end, "[anki.nvim][ankiconnect] Expected a table as decks")
+	end)
+end)
+
 describe("anki.ankiconnect graphical action wrappers", function()
 	local wrappers = {
 		"gui_browse",

@@ -175,8 +175,8 @@ require("anki").setup({
       search = "f",
       toggle_view_mode = "<Tab>",
       undo = "u",
-      select_note_in_anki_browser = "s",
-      sync_selection_from_anki_browser = "S",
+      select_note_in_anki_browser = "p",
+      sync_selection_from_anki_browser = "y",
     },
     editor = {
       close = "<leader>k",
@@ -234,6 +234,7 @@ These keymaps are configurable, see the `Configuration` section.
  | `m`    | Rename deck under the cursor            |
  | `o`    | Open the selected deck in the Anki GUI  |
  | `R`    | Start review for the deck under the cursor in the Anki GUI |
+ | `s`    | Show deck statistics popup (due counts, today's reviews, 7-day history) |
  | `r`    | Refresh decks                           |
  | `p`    | Switch Anki profile                     |
  | `t`    | Edit card templates for the model       |
@@ -254,8 +255,8 @@ These keymaps are configurable, see the `Configuration` section.
   | `f`      | Search notes by AnkiConnect query              |
   | `<Tab>`  | Toggle between notes and cards view            |
   | `u`      | Undo the last Anki action                      |
-  | `s`      | Reveal the note's first card in the Anki Browser |
-  | `S`      | Pull the Anki Browser selection into the notes pane filter |
+  | `p`      | Reveal the note's first card in the Anki Browser |
+  | `y`      | Pull the Anki Browser selection into the notes pane filter |
 
 ### Note Editor Keymaps
 

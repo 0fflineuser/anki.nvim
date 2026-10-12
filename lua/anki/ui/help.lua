@@ -13,7 +13,7 @@ function M.render_hint_line(context)
 	if context == "decks" then
 		m = config.options.mappings.deck
 		return string.format(
-			"Hint: %s add note | %s close | %s create deck | %s delete | %s gui | %s help | %s model | %s profile | %s refresh | %s rename | %s review | %s select | %s templates",
+			"Hint: %s add note | %s close | %s create deck | %s delete | %s gui | %s help | %s model | %s profile | %s refresh | %s rename | %s review | %s select | %s stats | %s templates",
 			m.add_note,
 			m.close,
 			m.create_deck,
@@ -26,6 +26,7 @@ function M.render_hint_line(context)
 			m.rename_deck,
 			m.review_deck,
 			m.select_deck,
+			m.deck_stats,
 			m.edit_templates
 		)
 	elseif context == "notes" then
@@ -125,6 +126,8 @@ function M.show_help(context)
 			m.rename_deck .. " - Rename Deck",
 			m.gui_deck .. " - Open in the Anki GUI",
 			m.review_deck .. " - Start review for this deck in the Anki GUI",
+			m.deck_stats
+				.. " - Show deck statistics for the deck under the cursor (per-deck due counts, today's reviews, 7-day history)",
 			m.refresh_decks .. " - Refresh Decks",
 			m.switch_profile .. " - Switch Profile",
 			m.edit_templates .. " - Edit card templates",

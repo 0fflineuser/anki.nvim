@@ -20,6 +20,9 @@ local function deck_at_cursor()
 	return anki_state.ui.decks[idx]
 end
 
+--- See local deck_at_cursor; exported for deck_stats popup resolution.
+M.deck_at_cursor = deck_at_cursor
+
 --- Returns the list of decks selected across a visual range, accounting
 --- for the header offset.
 ---@return string[] decks

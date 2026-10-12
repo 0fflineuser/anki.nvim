@@ -46,6 +46,7 @@
 ---@field rename_deck string Rename deck (default: `"m"`)
 ---@field gui_deck string Open in Anki GUI (default: `"o"`)
 ---@field review_deck string Start review for the deck under the cursor in the Anki GUI (default: `"R"`)
+---@field deck_stats string Show deck statistics popup (default: `"s"`)
 ---@field refresh_decks string Refresh decks (default: `"r"`)
 ---@field switch_profile string Switch profile (default: `"p"`)
 ---@field edit_templates string Edit card templates (default: `"t"`)
@@ -63,8 +64,8 @@
 ---@field search string Search notes by query (default: `"f"`)
 ---@field toggle_view_mode string Toggle between notes and cards view (default: `"<Tab>"`)
 ---@field undo string Undo the last Anki action (default: `"u"`)
----@field select_note_in_anki_browser string Reveal the note's first card in the open Anki browser (default: `"s"`)
----@field sync_selection_from_anki_browser string Import the Anki Browser selection as the notes pane filter (default: `"S"`)
+---@field select_note_in_anki_browser string Reveal the note's first card in the open Anki browser (default: `"p"`)
+---@field sync_selection_from_anki_browser string Import the Anki Browser selection as the notes pane filter (default: `"y"`)
 
 ---@class AnkiEditorMappings
 ---@field close string Close note editor (default: `"<leader>k"`)
@@ -145,6 +146,7 @@ M.defaults = {
 			rename_deck = "m",
 			gui_deck = "o",
 			review_deck = "R",
+			deck_stats = "s",
 			refresh_decks = "r",
 			switch_profile = "p",
 			edit_templates = "t",
@@ -162,8 +164,8 @@ M.defaults = {
 			search = "f",
 			toggle_view_mode = "<Tab>",
 			undo = "u",
-			select_note_in_anki_browser = "s",
-			sync_selection_from_anki_browser = "S",
+			select_note_in_anki_browser = "p",
+			sync_selection_from_anki_browser = "y",
 		},
 		editor = {
 			close = "<leader>k",
@@ -198,7 +200,10 @@ M.setup = function(opts)
 	if opts ~= nil and type(opts) ~= "table" then
 		error("[anki.nvim][config] setup: opts must be a table or nil")
 	end
-	M.options = vim.tbl_deep_extend("force", M.defaults, opts or {})
+	-- Copy M.defaults per call: tbl_deep_extend("force", M.defaults, opts)
+	-- mutates M.defaults in place, leaking overrides (e.g. custom keymaps)
+	-- into subsequent setup({}) calls.
+	M.options = vim.tbl_deep_extend("force", vim.deepcopy(M.defaults), opts or {})
 end
 
 return M

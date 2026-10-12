@@ -321,6 +321,12 @@ describe("anki.ui.help", function()
 			assert.is_true(line:find(" review ") ~= nil)
 		end)
 
+		it("includes the deck stats key in the decks hint line", function()
+			config.setup({})
+			local line = help.render_hint_line("decks")
+			assert.is_true(line:find(" stats ") ~= nil)
+		end)
+
 		it("includes undo/reveal/import labels in the notes hint line", function()
 			config.setup({})
 			local m = config.options.mappings.note

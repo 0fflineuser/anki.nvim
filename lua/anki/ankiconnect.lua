@@ -556,4 +556,35 @@ M.create_model = function(modelName, inOrderFields, cardTemplates, css, isCloze,
 	anki_connect_invoke_async({ action = "createModel", params = params }, on_result)
 end
 
+---
+--- Gets per-deck statistics (new/learn/review/total counts) for a list of decks.
+--- Returns a table keyed by numeric deck-ID strings, each value containing
+--- `deck_id`, `name`, `new_count`, `learn_count`, `review_count`, `total_in_deck`.
+---
+---@param decks table List of deck names.
+---@param on_result function Callback: on_result(deck_stats, error)
+M.get_deck_stats = function(decks, on_result)
+	if type(decks) ~= "table" then
+		error("[anki.nvim][ankiconnect] Expected a table as decks")
+	end
+	anki_connect_invoke_async({ action = "getDeckStats", params = { decks = decks } }, on_result)
+end
+
+---
+--- Gets the number of cards reviewed today across all decks.
+---
+---@param on_result function Callback: on_result(count, error)
+M.get_num_cards_reviewed_today = function(on_result)
+	anki_connect_invoke_async({ action = "getNumCardsReviewedToday" }, on_result)
+end
+
+---
+--- Gets the number of cards reviewed per day across all decks.
+--- Returns a list of (dateString, count) pairs, descending by day.
+---
+---@param on_result function Callback: on_result(days, error)
+M.get_num_cards_reviewed_by_day = function(on_result)
+	anki_connect_invoke_async({ action = "getNumCardsReviewedByDay" }, on_result)
+end
+
 return M
