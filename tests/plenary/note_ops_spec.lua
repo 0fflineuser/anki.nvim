@@ -402,6 +402,21 @@ describe("anki.ui.note_ops undo/select/sync", function()
 	end)
 
 	describe("select_note_in_anki_browser", function()
+		it("warns when the cursor is not on a note row", function()
+			anki_state.ui.notes = {}
+			vim.api.nvim_win_get_cursor = function()
+				return { 1, 0 }
+			end
+
+			note_ops.select_note_in_anki_browser()
+			drain_async()
+
+			assert.are.equal(0, #select_calls)
+			assert
+				.spy(warn_spy)
+				.was_called_with("[anki.nvim][note_ops] No note under cursor (place the cursor on a note row)")
+		end)
+
 		it("selects the card directly in cards mode", function()
 			anki_state.ui.view_mode = "cards"
 			anki_state.ui.cards = { { cardId = 77 } }
@@ -467,6 +482,47 @@ describe("anki.ui.note_ops undo/select/sync", function()
 				.was_called_with(
 					"[anki.nvim][note_ops] Failed to select the note's card in the Anki browser (is the Anki browser open?)"
 				)
+		end)
+
+		it("warns when Anki reports the browser is not open in cards mode", function()
+			anki_state.ui.view_mode = "cards"
+			anki_state.ui.cards = { { cardId = 77 } }
+			vim.api.nvim_win_get_cursor = function()
+				return { 4, 0 }
+			end
+			ankiconnect.gui_select_card = function(card, on_result)
+				table.insert(select_calls, card)
+				on_result(false, nil)
+			end
+
+			note_ops.select_note_in_anki_browser()
+			drain_async()
+
+			assert.are.equal(1, #select_calls)
+			assert
+				.spy(warn_spy)
+				.was_called_with("[anki.nvim][note_ops] Anki browser is not open — open it in Anki and try again")
+		end)
+
+		it("does not warn when the select call succeeds in notes mode", function()
+			anki_state.ui.view_mode = "notes"
+			anki_state.ui.notes = { { noteId = 42, cards = { 900, 901 } } }
+			vim.api.nvim_win_get_cursor = function()
+				return { 4, 0 }
+			end
+			ankiconnect.notes_info = function(notes, on_result)
+				on_result({ { cards = { 900, 901 } } }, nil)
+			end
+			ankiconnect.gui_select_card = function(card, on_result)
+				table.insert(select_calls, card)
+				on_result(true, nil)
+			end
+
+			note_ops.select_note_in_anki_browser()
+			drain_async()
+
+			assert.are.equal(1, #select_calls)
+			assert.spy(warn_spy).was_not_called()
 		end)
 	end)
 

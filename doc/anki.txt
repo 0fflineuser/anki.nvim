@@ -114,8 +114,8 @@ AnkiNoteMappings                                  *anki.config.AnkiNoteMappings*
         {search}                            (string)  Search notes by query (default: `"f"`)
         {toggle_view_mode}                  (string)  Toggle between notes and cards view (default: `"<Tab>"`)
         {undo}                              (string)  Undo the last Anki action (default: `"u"`)
-        {select_note_in_anki_browser}       (string)  Select the note's card in the open Anki browser (default: `"s"`)
-        {sync_selection_from_anki_browser}  (string)  Show notes selected in the open Anki browser (default: `"S"`)
+        {select_note_in_anki_browser}       (string)  Reveal the note's first card in the open Anki browser (default: `"s"`)
+        {sync_selection_from_anki_browser}  (string)  Import the Anki Browser selection as the notes pane filter (default: `"S"`)
 
 
 AnkiEditorMappings                              *anki.config.AnkiEditorMappings*

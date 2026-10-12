@@ -43,6 +43,96 @@ describe("anki.ui.help", function()
 		cleanup_help_buffers()
 	end)
 
+	describe("help window sizing", function()
+		local function open_capturing(context)
+			local longest = 0
+			local captured_width = nil
+			local bufnr = nil
+			local saved_open_win = vim.api.nvim_open_win
+			vim.api.nvim_open_win = function(buffer, enter, opts)
+				bufnr = buffer
+				captured_width = opts.width
+				for _, line in ipairs(vim.api.nvim_buf_get_lines(buffer, 0, -1, false)) do
+					longest = math.max(longest, vim.api.nvim_strwidth(line))
+				end
+				return saved_open_win(buffer, enter, opts)
+			end
+			local ok, err = pcall(help.show_help, context)
+			vim.api.nvim_open_win = saved_open_win
+			assert.is_true(ok)
+			assert.is_nil(err)
+			if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+				vim.api.nvim_buf_delete(bufnr, { force = true })
+			end
+			return captured_width, longest
+		end
+
+		local saved_columns
+
+		before_each(function()
+			saved_columns = vim.o.columns
+		end)
+
+		after_each(function()
+			vim.o.columns = saved_columns
+		end)
+
+		it("sizes the float to the longest line when it fits the screen", function()
+			vim.o.columns = 200
+			local captured_width, longest = open_capturing("notes")
+			assert.is_true(longest > 60, "expected long help lines for this scenario")
+			assert.are.equal(longest, captured_width)
+		end)
+
+		it("clamps the float width so no line exceeds the screen", function()
+			vim.o.columns = 20
+			local captured_width, _ = open_capturing("notes")
+			assert.are.equal(vim.o.columns - 2, captured_width)
+		end)
+	end)
+
+	describe("help window close keymaps", function()
+		local function close_lhs_set(context)
+			local bufnr = nil
+			local saved_open_win = vim.api.nvim_open_win
+			vim.api.nvim_open_win = function(buffer, enter, opts)
+				bufnr = buffer
+				return saved_open_win(buffer, enter, opts)
+			end
+			local ok, err = pcall(help.show_help, context)
+			vim.api.nvim_open_win = saved_open_win
+			assert.is_true(ok)
+			assert.is_nil(err)
+
+			local maps = vim.api.nvim_buf_get_keymap(bufnr, "n")
+			vim.api.nvim_buf_delete(bufnr, { force = true })
+			return maps
+		end
+
+		local function assert_close_maps(maps)
+			local close_count = 0
+			local has_q = false
+			for _, map in ipairs(maps) do
+				if map.rhs and map.rhs:find("close_help", 1, true) then
+					close_count = close_count + 1
+					if map.lhs == "q" then
+						has_q = true
+					end
+				end
+			end
+			assert.are.equal(2, close_count)
+			assert.is_true(has_q)
+		end
+
+		it("notes context maps q and the note close key to close_help", function()
+			assert_close_maps(close_lhs_set("notes"))
+		end)
+
+		it("templates context maps q and close_template", function()
+			assert_close_maps(close_lhs_set("templates"))
+		end)
+	end)
+
 	describe("show_help for decks", function()
 		it("does not error", function()
 			local _, err = get_help_lines("decks")
@@ -231,12 +321,12 @@ describe("anki.ui.help", function()
 			assert.is_true(line:find(" review ") ~= nil)
 		end)
 
-		it("includes undo/select/sync labels in the notes hint line", function()
+		it("includes undo/reveal/import labels in the notes hint line", function()
 			config.setup({})
 			local m = config.options.mappings.note
 			local line = help.render_hint_line("notes")
-			assert.is_true(line:find(" " .. m.select_note_in_anki_browser .. " select ") ~= nil)
-			assert.is_true(line:find(" " .. m.sync_selection_from_anki_browser .. " sync ") ~= nil)
+			assert.is_true(line:find(" " .. m.select_note_in_anki_browser .. " reveal ") ~= nil)
+			assert.is_true(line:find(" " .. m.sync_selection_from_anki_browser .. " import ") ~= nil)
 			assert.is_true(line:find(" " .. m.undo .. " undo$") ~= nil)
 		end)
 	end)

@@ -253,8 +253,8 @@ These keymaps are configurable, see the `Configuration` section.
   | `f`      | Search notes by AnkiConnect query              |
   | `<Tab>`  | Toggle between notes and cards view            |
   | `u`      | Undo the last Anki action                      |
-  | `s`      | Select the note's card in the open Anki browser |
-  | `S`      | Show notes selected in the open Anki browser   |
+  | `s`      | Reveal the note's first card in the Anki Browser |
+  | `S`      | Pull the Anki Browser selection into the notes pane filter |
 
 ### Note Editor Keymaps
 

@@ -116,8 +116,10 @@ describe("editor help sticky checkboxes", function()
 				false
 			)
 		)
-		assert.truthy(joined:find("  %[% %] Front", 1, false))
-		assert.truthy(joined:find("  %[% %] Back", 1, false))
+		assert.truthy(joined:find("%[% %] Front", 1, false))
+		assert.truthy(joined:find("%[% %] Back", 1, false))
+		-- Checkbox lines must not be indented.
+		assert.falsy(joined:find("  [", 1, true))
 		cleanup(note, help_bufnr)
 	end)
 
@@ -128,8 +130,8 @@ describe("editor help sticky checkboxes", function()
 		-- Toggled field renders checked.
 		local lines = vim.api.nvim_buf_get_lines(help_bufnr, 0, -1, false)
 		local joined = table.concat(lines, "\n")
-		assert.truthy(joined:find("  %[x%] Front", 1, false))
-		assert.truthy(joined:find("  %[% %] Back", 1, false))
+		assert.truthy(joined:find("%[x%] Front", 1, false))
+		assert.truthy(joined:find("%[% %] Back", 1, false))
 
 		-- Buffer-local <C-Space> normal-mode keymap exists.
 		local found = false
@@ -145,13 +147,13 @@ describe("editor help sticky checkboxes", function()
 		vim.api.nvim_win_set_cursor(help_winid, { first_line, 0 })
 		help._toggle_sticky_field(help_bufnr)
 		assert.is_false(sticky.is_sticky("TestModel", "Front"))
-		assert.equals("  [ ] Front", vim.api.nvim_buf_get_lines(help_bufnr, first_line - 1, first_line, false)[1])
+		assert.equals("[ ] Front", vim.api.nvim_buf_get_lines(help_bufnr, first_line - 1, first_line, false)[1])
 
 		-- Toggling on the Back line flips the store and rewrites the box.
 		vim.api.nvim_win_set_cursor(help_winid, { first_line + 1, 0 })
 		help._toggle_sticky_field(help_bufnr)
 		assert.is_true(sticky.is_sticky("TestModel", "Back"))
-		assert.equals("  [x] Back", vim.api.nvim_buf_get_lines(help_bufnr, first_line, first_line + 1, false)[1])
+		assert.equals("[x] Back", vim.api.nvim_buf_get_lines(help_bufnr, first_line, first_line + 1, false)[1])
 
 		cleanup(note, help_bufnr)
 	end)

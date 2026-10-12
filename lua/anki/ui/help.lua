@@ -31,7 +31,7 @@ function M.render_hint_line(context)
 	elseif context == "notes" then
 		m = config.options.mappings.note
 		return string.format(
-			"Hint: %s all | %s cards/notes | %s close | %s delete | %s edit | %s gui | %s help | %s move | %s refresh | %s search | %s select | %s sync | %s undo",
+			"Hint: %s all | %s cards/notes | %s close | %s delete | %s edit | %s gui | %s help | %s import | %s move | %s refresh | %s reveal | %s search | %s undo",
 			m.show_all_notes,
 			m.toggle_view_mode,
 			m.close,
@@ -39,11 +39,11 @@ function M.render_hint_line(context)
 			m.edit_note,
 			m.gui_note,
 			m.show_help,
+			m.sync_selection_from_anki_browser,
 			m.move_note_to_deck,
 			m.refresh_notes,
-			m.search,
 			m.select_note_in_anki_browser,
-			m.sync_selection_from_anki_browser,
+			m.search,
 			m.undo
 		)
 	end
@@ -53,9 +53,9 @@ end
 --- Builds one sticky checkbox line for the help buffer.
 ---@param field_name string The field name.
 ---@param is_sticky boolean The sticky state of the field.
----@return string The rendered checkbox line, e.g. "  [x] Front".
+---@return string The rendered checkbox line, e.g. "[x] Front".
 local function sticky_checkbox_line(field_name, is_sticky)
-	return "  [" .. (is_sticky and "x" or " ") .. "] " .. field_name
+	return "[" .. (is_sticky and "x" or " ") .. "] " .. field_name
 end
 
 --- Builds the sticky-fields section lines for the editor help context.
@@ -149,8 +149,9 @@ function M.show_help(context)
 			m.toggle_view_mode .. " - Toggle between notes and cards view",
 			m.move_note_to_deck .. " - Move note's cards to another deck",
 			m.undo .. " - Undo the last Anki action",
-			m.select_note_in_anki_browser .. " - Select the note's card in the open Anki browser",
-			m.sync_selection_from_anki_browser .. " - Show notes selected in the open Anki browser",
+			m.select_note_in_anki_browser .. " - Reveal this note's first card in the open Anki browser",
+			m.sync_selection_from_anki_browser
+				.. " - Import the current selection from the open Anki browser as the notes filter",
 		}
 	elseif context == "editor" then
 		local m = config.options.mappings.editor
@@ -199,7 +200,11 @@ function M.show_help(context)
 	local help_bufnr = vim.api.nvim_create_buf(false, true)
 	vim.api.nvim_buf_set_name(help_bufnr, "Anki Help")
 	vim.api.nvim_buf_set_lines(help_bufnr, 0, -1, false, help_lines)
-	local width = 60
+	local width = 0
+	for _, line in ipairs(help_lines) do
+		width = math.max(width, vim.api.nvim_strwidth(line))
+	end
+	width = math.max(math.min(width, vim.o.columns - 2), 1)
 	local height = #help_lines + 2
 	vim.api.nvim_open_win(help_bufnr, true, {
 		relative = "editor",
@@ -212,7 +217,18 @@ function M.show_help(context)
 		border = "single",
 		title = "Anki Help",
 	})
-	vim.api.nvim_buf_set_keymap(help_bufnr, "n", "<leader>k", "<Cmd>bd!<CR>", { noremap = true, silent = true })
+	-- Close via the context's close mapping and the universal `q`.
+	local close_keys = {
+		decks = config.options.mappings.deck.close,
+		notes = config.options.mappings.note.close,
+		editor = config.options.mappings.editor.close,
+		templates = config.options.mappings.template.close_template,
+		media_browser = "<leader>k",
+	}
+	local close_rhs = "<Cmd>lua require('anki.ui.help').close_help()<CR>"
+	for _, key in ipairs({ close_keys[context] or "<leader>k", "q" }) do
+		vim.api.nvim_buf_set_keymap(help_bufnr, "n", key, close_rhs, { noremap = true, silent = true })
+	end
 
 	if note_anchored then
 		local fields = {}

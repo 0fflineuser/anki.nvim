@@ -63,8 +63,8 @@
 ---@field search string Search notes by query (default: `"f"`)
 ---@field toggle_view_mode string Toggle between notes and cards view (default: `"<Tab>"`)
 ---@field undo string Undo the last Anki action (default: `"u"`)
----@field select_note_in_anki_browser string Select the note's card in the open Anki browser (default: `"s"`)
----@field sync_selection_from_anki_browser string Show notes selected in the open Anki browser (default: `"S"`)
+---@field select_note_in_anki_browser string Reveal the note's first card in the open Anki browser (default: `"s"`)
+---@field sync_selection_from_anki_browser string Import the Anki Browser selection as the notes pane filter (default: `"S"`)
 
 ---@class AnkiEditorMappings
 ---@field close string Close note editor (default: `"<leader>k"`)

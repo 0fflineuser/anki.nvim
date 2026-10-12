@@ -344,22 +344,26 @@ end
 function M.select_note_in_anki_browser()
 	local entry = entry_at_cursor()
 	if not entry then
+		notification.warn("[anki.nvim][note_ops] No note under cursor (place the cursor on a note row)")
 		return
 	end
 
 	if anki_state.ui.view_mode == "cards" then
-		utils.async_safe_call(ankiconnect.gui_select_card, { entry.cardId }, function(_, error)
-			if error then
+		utils.async_safe_call(ankiconnect.gui_select_card, { entry.cardId }, function(result, select_error)
+			if select_error then
 				notification.error(
 					"[anki.nvim][note_ops] Failed to select the note's card in the Anki browser (is the Anki browser open?)"
 				)
 				return
 			end
+			if result == false then
+				notification.warn("[anki.nvim][note_ops] Anki browser is not open — open it in Anki and try again")
+			end
 		end)
 		return
 	end
 
-	utils.async_safe_call(ankiconnect.notes_info, { entry.noteId }, function(notes_info, error)
+	utils.async_safe_call(ankiconnect.notes_info, { { entry.noteId } }, function(notes_info, error)
 		if error or not notes_info or not notes_info[1] then
 			notification.error("[anki.nvim][note_ops] Could not fetch note info.")
 			return
@@ -369,12 +373,15 @@ function M.select_note_in_anki_browser()
 			notification.warn("[anki.nvim][note_ops] Note under cursor has no cards")
 			return
 		end
-		utils.async_safe_call(ankiconnect.gui_select_card, { info.cards[1] }, function(_, select_error)
+		utils.async_safe_call(ankiconnect.gui_select_card, { info.cards[1] }, function(result, select_error)
 			if select_error then
 				notification.error(
 					"[anki.nvim][note_ops] Failed to select the note's card in the Anki browser (is the Anki browser open?)"
 				)
 				return
+			end
+			if result == false then
+				notification.warn("[anki.nvim][note_ops] Anki browser is not open — open it in Anki and try again")
 			end
 		end)
 	end)
