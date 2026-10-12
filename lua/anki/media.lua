@@ -265,12 +265,16 @@ function M._attach_clipboard(bufnr)
 	local has_xclip = vim.fn.executable("xclip") == 1
 	local has_xsel = vim.fn.executable("xsel") == 1
 	local has_powersetclipboard = vim.fn.executable("powershell.exe") == 1 or vim.fn.executable("pwsh") == 1
+	local has_pngpaste = vim.fn.executable("pngpaste") == 1
 	local has_pbcopy = vim.fn.executable("pbpaste") == 1
 
 	local tmp_file = vim.fn.tempname()
 	local success = false
 
-	if has_wayland and vim.fn.executable("wl-paste") == 1 then
+	if has_pngpaste then
+		vim.fn.system((string.format("pngpaste %s 2>/dev/null", vim.fn.shellescape(tmp_file))))
+		success = vim.v.shell_error == 0
+	elseif has_wayland and vim.fn.executable("wl-paste") == 1 then
 		vim.fn.system(string.format("wl-paste --type image/png > %s 2>/dev/null", vim.fn.shellescape(tmp_file)))
 		success = vim.v.shell_error == 0
 	elseif has_xclip then
