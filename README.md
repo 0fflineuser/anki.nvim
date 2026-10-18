@@ -19,7 +19,7 @@ It allows you to create, edit, and manage your Anki notes and decks directly fro
 
 ## Features
 
--   Tab-based UI: Browse decks and notes in a two-pane browser tab (Decks on top, Notes on bottom), with note editing and template editing each opening in their own dedicated tabs. Multiple notes and templates can be edited simultaneously.
+-   Tab-based UI: Browse notes and decks in a two-pane browser tab (Notes on top, Decks on bottom), with note editing and template editing each opening in their own dedicated tabs. Multiple notes and templates can be edited simultaneously.
 -   Persistent 'Default' Deck: The 'Default' deck will always appear in the deck pane, even if deleted, because Anki automatically recreates it as needed.
 -   Deck Management: Create, rename, and delete Anki decks from within Neovim.
 -   Note Management: Create, edit, move and delete notes in any deck.
@@ -208,12 +208,12 @@ The plugin is centered around a single command, `:Anki`, which opens a dedicated
 
 This browser tab has a horizontal split layout:
 
--   **Decks** (top): A list of your Anki decks.
--   **Notes** (bottom): A list of notes in the selected deck.
+-   **Notes** (top): A list of notes in the selected deck.
+-   **Decks** (bottom): A list of your Anki decks. Decks with `::` subdecks render as an indented tree showing each deck's own name (e.g. `Foo::Bar` appears indented as `Bar` under `Foo`), collapsed/expanded with native fold keys (`za` toggles, `zR` expands all, `zM` collapses all).
 
 Each pane prepends a one-line key hint at the top, followed by a mode header and a blank line, so the available keys are always visible.
 
-The bottom pane has two view modes: **notes** (default) and **cards**. Press `<Tab>` (default) to toggle between them — notes mode shows one row per note with its field values and card count, cards mode shows one row per reviewable card with its due date, interval, and ease. Press `f` to run an arbitrary AnkiConnect search query (e.g. `deck:Foo tag:bar`).
+The notes pane has two view modes: **notes** (default) and **cards**. Press `<Tab>` (default) to toggle between them — notes mode shows one row per note with its field values and card count, cards mode shows one row per reviewable card with its due date, interval, and ease. Press `f` to run an arbitrary AnkiConnect search query (e.g. `deck:Foo tag:bar`).
 
 Editing notes and templates opens in their own separate tabs, and multiple notes or templates can be edited at the same time.
 

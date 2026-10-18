@@ -3,6 +3,7 @@ local config = require("anki.config")
 local utils = require("anki.utils")
 local ankiconnect = require("anki.ankiconnect")
 local help = require("anki.ui.help")
+local deckfolds = require("anki.ui.deckfolds")
 
 local M = {}
 
@@ -225,7 +226,7 @@ local function update_decks_view(on_done)
 		anki_state.ui.decks = deck_names
 		vim.schedule(function()
 			if anki_state.ui.deck_buf_id and vim.api.nvim_buf_is_valid(anki_state.ui.deck_buf_id) then
-				render_with_header(anki_state.ui.deck_buf_id, "decks", deck_names)
+				render_with_header(anki_state.ui.deck_buf_id, "decks", deckfolds.indent_deck_lines(deck_names))
 			end
 			if on_done then
 				on_done()

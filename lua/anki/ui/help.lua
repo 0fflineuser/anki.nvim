@@ -132,6 +132,8 @@ function M.show_help(context)
 			m.switch_profile .. " - Switch Profile",
 			m.edit_templates .. " - Edit card templates",
 			m.create_model .. " - Create new model/note type",
+			"Folding: decks with '::' subdecks render as an indented tree showing each deck's own name.",
+			"za toggles the fold under the cursor; zR expands all, zM collapses all.",
 		}
 	elseif context == "notes" then
 		local m = config.options.mappings.note

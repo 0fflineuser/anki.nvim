@@ -2,6 +2,7 @@ local anki_state = require("anki.state")
 local notification = require("anki.notification")
 local utils = require("anki.utils")
 local config = require("anki.config")
+local deckfolds = require("anki.ui.deckfolds")
 
 local M = {}
 
@@ -66,7 +67,7 @@ function M.check_anki_permissions(ankiconnect_module, on_result)
 end
 
 --- Creates the Anki UI layout with deck and note buffers in a new tab.
---- The layout uses a top pane for decks and a bottom pane for notes (horizontal split).
+--- The layout uses a top pane for notes and a bottom pane for decks (horizontal split).
 --- Note editors open in separate tabs.
 --- @return number The window ID of the deck window.
 function M.create_layout()
@@ -96,6 +97,8 @@ function M.create_layout()
 		vim.api.nvim_set_option_value("wrap", false, { win = win_id })
 		vim.api.nvim_set_option_value("cursorline", true, { win = win_id })
 	end
+
+	deckfolds.setup_deck_folds(anki_state.ui.deck_buf_id, deck_win_id)
 
 	return deck_win_id
 end
